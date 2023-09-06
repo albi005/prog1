@@ -20,3 +20,9 @@ dap.configurations.c = {
         },
     },
 }
+
+dap.adapters.cppdbg = {
+    id = 'cppdbg',
+    type = 'executable',
+    command = os.getenv'OPEN_DEBUG_PATH',
+}

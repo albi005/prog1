@@ -1,3 +1,3 @@
-gcc -o bin/a main.c;
-bin/a;
+gcc main.c;
+./a.out;
 

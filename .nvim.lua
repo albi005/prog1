@@ -6,8 +6,8 @@ dap.configurations.c = {
         type = "cppdbg",
         request = "launch",
         program = function()
-            vim.cmd('!gcc ' .. vim.fn.expand('%') .. ' -o bin/a -g')
-            return 'bin/a'
+            vim.cmd('!gcc ' .. vim.fn.expand('%') .. ' -g')
+            return 'a.out'
         end,
         cwd = '${workspaceFolder}',
         stopAtEntry = false,

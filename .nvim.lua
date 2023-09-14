@@ -26,3 +26,5 @@ dap.adapters.cppdbg = {
     type = 'executable',
     command = os.getenv'OPEN_DEBUG_PATH',
 }
+
+vim.keymap.set('n', '<Leader>r', ':!gcc % && ./a.out < %.in<CR>', { noremap = true });

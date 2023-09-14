@@ -3,6 +3,7 @@
     packages = with pkgs; [
         gcc
         gdb
+        sourcekit-lsp
     ];
     shellHook = ''
         export PS1="\[\033[01;31m\]Ez ám a C programozás!\[\033[00m\] ";

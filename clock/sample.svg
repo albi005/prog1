@@ -4,7 +4,7 @@
         <filter id="shadow">
             <!-- from https://codepen.io/sdthornton/pen/wBZdXq -->
             <!-- box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22); -->
-            <feDropShadow dx="0" dy="" stdDeviation=".038" flood-color="rgba(0,0,0,0.30)" />
+            <feDropShadow dx="0" dy="0" stdDeviation=".038" flood-color="rgba(0,0,0,0.30)" />
             <feDropShadow dx="0" dy=".005" stdDeviation=".012" flood-color="rgba(0,0,0,0.22)" />
         </filter>
 
@@ -12,21 +12,19 @@
             <stop offset="0" stop-color="#fff" />
             <stop offset="1" stop-color="#fff" stop-opacity="0" />
         </linearGradient>
-        <linearGradient id="prefix__a" color-interpolation="linearRGB" >
+        <linearGradient id="prefix__a">
             <stop offset="0" stop-color="#000081" />
             <stop offset="1" stop-color="blue" />
         </linearGradient>
-        <linearGradient xlink:href="#prefix__c" id="prefix__i" x1=".5" y1="0" x2=".5" y2="1"
-            gradientUnits="objectBoundingBox" />
         <radialGradient xlink:href="#prefix__a" id="prefix__d" cx=".5" cy=".5" fx=".5" fy=".5" r=".5"
             gradientUnits="objectBoundingBox" />
     </defs>
-    <circle cx="" cy="" r="1" fill="url(#prefix__d)" style="filter:url(#shadow)" />
-    <path d="M -0.02 -1 H 0.02 L 0 -0.82 Z" fill="url(#prefix__i)" transform="rotate(0)" />
-    <path d="M -0.005 -1 H 0.005 L 0 -0.9 Z" fill="url(#prefix__i)" transform="rotate(6)" />
-    <path d="M -0.0025 0 H 0.0025 L 0 0.9 Z" fill="url(#prefix__i)" transform="rotate(-180)" />
-    <path d="M -0.02 0 H 0.02 L 0 0.5 Z" fill="url(#prefix__i)" transform="rotate(-90)" />
-    <path d="M -0.01 0 H 0.01 L 0 0.9 Z" fill="url(#prefix__i)" transform="rotate(0)" />
+    <circle cx="0" cy="0" r="1" fill="url(#prefix__d)" style="filter:url(#shadow)" />
+    <path d="M -0.02 -1 L 0.02 -1 L 0 -0.82 Z" fill="white" transform="rotate(0)" />
+    <path d="M -0.005 -1 H 0.005 L 0 -0.9 Z" fill="white" transform="rotate(6)" />
+    <path d="M -0.0025 0 H 0.0025 L 0 0.9 Z" fill="white" transform="rotate(-180)" />
+    <path d="M -0.02 0 H 0.02 L 0 0.5 Z" fill="white" transform="rotate(-90)" />
+    <path d="M -0.01 0 H 0.01 L 0 0.9 Z" fill="white" transform="rotate(0)" />
     
 </svg>
 

@@ -1,12 +1,14 @@
 local dap = require('dap')
 
+local options = "-lm -Wall -std=c99 -g -O0"
+
 dap.configurations.c = {
     {
         name = "Run C program",
         type = "cppdbg",
         request = "launch",
         program = function()
-            vim.cmd('!gcc -lm "' .. vim.fn.expand('%') .. '" -g -O0')
+            vim.cmd('!gcc ' .. options .. ' "' .. vim.fn.expand('%') .. '"')
             return 'a.out'
         end,
         cwd = '${workspaceFolder}',
@@ -27,5 +29,5 @@ dap.adapters.cppdbg = {
     command = os.getenv'OPEN_DEBUG_PATH',
 }
 
-vim.keymap.set('n', '<Leader>r', ':!gcc -lm "%" && ./a.out < "%.in"<CR>', { noremap = true });
-vim.keymap.set('n', '<Leader>t', ':!gcc -lm "%" && ./a.out <CR>', { noremap = true });
+vim.keymap.set('n', '<Leader>r', ':!gcc ' .. options .. ' "%" && ./a.out < "%.in"<CR>', { noremap = true });
+vim.keymap.set('n', '<Leader>t', ':!gcc ' .. options .. ' "%" && ./a.out <CR>', { noremap = true });

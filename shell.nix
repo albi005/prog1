@@ -4,6 +4,7 @@
         gcc
         gdb
         sourcekit-lsp
+        zip
     ];
     shellHook = ''
         export PS1="\[\033[01;31m\]C!\[\033[00m\] ";

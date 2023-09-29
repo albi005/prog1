@@ -1,22 +1,24 @@
 #include <stdio.h>
 
 int main() {
-    char code[] = ",+[-.,+]";
+    // brainfuck code created using https://copy.sh/brainfuck/text.html
+    char programkod[] = "--[----->+<]>-----.+++++++++++.----------.[-->+<]>.---.+[--->+<]>+++.[--->+<]>---.";
 
     char mem[32768];
     char *p = mem;
     char *end = mem + 32768;
+    int stack;
 
     while (++p < end)
         *p = 0;
 
     p = mem;
-    for (int i = 0; code[i] != '\0'; i++) {
+    for (int i = 0; programkod[i] != '\0'; i++) {
         if (p < mem || p >= end) {
             printf("[ERROR] went out of bounds\n");
             return 0;
         }
-        char cmd = code[i];
+        char cmd = programkod[i];
         switch (cmd) {
             case '+':
                 ++*p;
@@ -25,27 +27,43 @@ int main() {
                 --*p;
                 break;
             case '[':
-                break;
-            case ']':
-                if (*p == 0)
-                    break;
+                if (*p) break;
 
-                int stack = 1;
+                stack = 1;
                 while (stack) {
-                    i--;
-                    if (code[i] == '[')
-                        stack--;
-                    if (i < 0) {
+                    i++;
+                    if (i == '\0') {
                         printf("[ERROR] unmatched '['\n");
                         return 0;
                     }
+
+                    if (programkod[i] == '[')
+                        stack++;
+                    else if (programkod[i] == ']')
+                        stack--;
                 }
+                break;
+            case ']':
+                stack = 1;
+                while (stack) {
+                    i--;
+                    if (i < 0) {
+                        printf("[ERROR] unmatched ']'\n");
+                        return 0;
+                    }
+
+                    if (programkod[i] == '[')
+                        stack--;
+                    else if (programkod[i] == ']')
+                        stack++;
+                }
+                i--;
                 break;
             case '.':
                 printf("%c", *p);
                 break;
             case ',':
-                if (!scanf("%c", p))
+                if (scanf("%c", p) < 0)
                     *p = -1;
                 break;
             case '>':

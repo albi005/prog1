@@ -2,3 +2,4 @@ bin
 result
 **.out
 **.zip
+.direnv

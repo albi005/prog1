@@ -63,13 +63,13 @@ void f2() {
 }
 
 Hangrend hangrend(char *szo) {
-    int vanMagas = 0, vanMely = 0;
-    for (int i = 0; szo[i] != 0; i++) {
+    bool vanMagas = false, vanMely = false;
+    for (int i = 0; szo[i] != 0 && !(vanMagas && vanMely); i++) {
         char c = szo[i];
         if (strchr("ei", c) != NULL)
-            vanMagas = 1;
+            vanMagas = true;
         else if (strchr("aou", c) != NULL)
-            vanMely = 1;
+            vanMely = true;
     }
 
     return vanMagas && vanMely ? vegyes

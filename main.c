@@ -1,10 +1,10 @@
 #include <stdio.h>
+#include <limits.h>
 
 int main(void) {
-    int a,b;
-    scanf("%d", &a);
-    scanf("%d", &b);
-    printf("%d\n", a + b);
+    printf("%d\n", INT_MIN - 1);
+    printf("%d\n", INT_MAX + 1);
+    
 
     return 0;
 }

@@ -2,11 +2,11 @@
 
 int main() {
     // brainfuck code created using https://copy.sh/brainfuck/text.html
-    char programkod[] = "--[----->+<]>-----.+++++++++++.----------.[-->+<]>.---.+[--->+<]>+++.[--->+<]>---.";
+    signed char programkod[] = "--[----->+<]>-----.+++++++++++.----------.[-->+<]>.---.+[--->+<]>+++.[--->+<]>---.";
 
-    char mem[32768];
-    char *p = mem;
-    char *end = mem + 32768;
+    signed char mem[32768];
+    signed char *p = mem;
+    signed char *end = mem + 32768;
     int stack;
 
     while (++p < end)
@@ -18,7 +18,7 @@ int main() {
             printf("[ERROR] went out of bounds\n");
             return 0;
         }
-        char cmd = programkod[i];
+        signed char cmd = programkod[i];
         switch (cmd) {
             case '+':
                 ++*p;

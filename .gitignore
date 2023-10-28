@@ -1,5 +1,8 @@
-bin
-result
+**.gch
 **.out
 **.zip
+.cache
 .direnv
+bin
+compile_commands.json
+result

@@ -1,8 +1,15 @@
 { pkgs ? import <nixpkgs> {} }:
   pkgs.mkShell {
     packages = with pkgs; [
+        bear
+        clang-tools
         gcc
         gdb
+        SDL2
+        SDL2_gfx
+        SDL2_image
+        SDL2_ttf
+        SDL2_mixer
         sourcekit-lsp
         zip
     ];

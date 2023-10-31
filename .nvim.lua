@@ -1,6 +1,6 @@
 local dap = require('dap')
 
-local options = "-lm -Wall -std=c99 -g -O0"
+local options = "-lm -Wall -std=c11 -g -O0"
 
 dap.configurations.c = {
     {
@@ -29,7 +29,7 @@ dap.adapters.cppdbg = {
     command = os.getenv'OPEN_DEBUG_PATH',
 }
 
--- use %.in if it exists
+-- compile and run, pass in input if it exists
 vim.keymap.set('n', '<Leader>r', function ()
     local input = vim.fn.expand('%:r') .. '.in'
     local exists = vim.fn.filereadable(input)
@@ -41,7 +41,17 @@ vim.keymap.set('n', '<Leader>r', function ()
 end)
 
 -- compile and run in an interactive shell
--- <Leader>t
-vim.keymap.set('n', '<Leader>t', ':!gcc ' .. options .. ' "%" && ./a.out |& tee /dev/tty<CR>', { noremap = true });
+vim.keymap.set('n', '<Leader>t', function ()
+    local cmd
+    if string.find(vim.fn.expand('%'), 'nhf') then
+        cmd = '!gcc ' .. options .. ' ' .. vim.fn.expand('%:p:h') .. '/*.c'
+    else
+        cmd = '!gcc ' .. options .. ' "' .. vim.fn.expand('%') .. '"'
+    end
+    vim.cmd(cmd)
 
-vim.keymap.set('n', '<Leader>s', ':!gcc ' .. options .. ' "%" `sdl2-config --cflags --libs` -lSDL2_gfx -lSDL2_ttf -lSDL2_image -lSDL2_mixer && ./a.out <CR>', { noremap = true });
+    vim.cmd(':te ./a.out')
+end)
+
+--- compile and run SDL2 program
+vim.keymap.set('n', '<Leader>s', ':!gcc ' .. options .. ' " %" `sdl2-config --cflags --libs` -lSDL2_gfx -lSDL2_ttf -lSDL2_image -lSDL2_mixer && ./a.out <CR>', { noremap = true });

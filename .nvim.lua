@@ -8,7 +8,13 @@ dap.configurations.c = {
         type = "cppdbg",
         request = "launch",
         program = function()
-            vim.cmd('!gcc ' .. options .. ' "' .. vim.fn.expand('%') .. '"')
+            local cmd
+            if string.find(vim.fn.expand('%'), 'nhf') then
+                cmd = '!gcc ' .. options .. ' ' .. vim.fn.expand('%:p:h') .. '/*.c'
+            else
+                cmd = '!gcc ' .. options .. ' "' .. vim.fn.expand('%') .. '"'
+            end
+            vim.cmd(cmd)
             return 'a.out'
         end,
         cwd = '${workspaceFolder}',

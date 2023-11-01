@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 int main() {
-    int a = 37;
-    int b = 42;
-    int m = 69;
+    int a = 13;
+    int b = 53;
+    int m = 97;
 
     int c = 1;
     while (1) {

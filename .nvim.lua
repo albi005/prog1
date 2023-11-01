@@ -33,7 +33,7 @@ dap.adapters.cppdbg = {
 vim.keymap.set('n', '<Leader>r', function ()
     local input = vim.fn.expand('%:r') .. '.in'
     local exists = vim.fn.filereadable(input)
-    if exists then
+    if exists == 1 then
         vim.cmd('!gcc ' .. options .. ' "%" && ./a.out < "' .. input .. '"')
     else
         vim.cmd('!gcc ' .. options .. ' "%" && ./a.out')

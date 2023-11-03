@@ -69,7 +69,7 @@ void draw_tabs(Tabs* tabs) {
     for (int i = 0; i < 3; i++) {
         econio_gotoxy(x, 0);
         if (i == tabs->selected_tab) {
-            text_color(ON_SURFACE);
+            text_color(ON_PRIMARY_CONTAINER);
             background_color(SURFACE_CONTAINER);
         } else {
             text_color(ON_SURFACE_VARIANT);

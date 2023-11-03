@@ -21,7 +21,7 @@ void draw_tabs(Tabs* tabs) {
     for (int i = 0; i < 3; i++) {
         econio_gotoxy(x, 0);
         if (i == tabs->selected_tab) {
-            text_color(ON_PRIMARY_CONTAINER);
+            text_color(ON_SURFACE);
             background_color(SURFACE_CONTAINER);
         } else {
             text_color(ON_SURFACE_VARIANT);
@@ -35,6 +35,16 @@ void draw_tabs(Tabs* tabs) {
 void draw_background() {
     background_color(SURFACE_CONTAINER_LOWEST);
     econio_clrscr();
+}
+
+int get_max_name_length(Owners *os) {
+    int longest = 0;
+    for (int i = 0; i < os->length; i++) {
+        Owner *o = os->data + i;
+        int len = count_utf8_code_points(o->name);
+        if (len > longest) longest = len;
+    }
+    return longest;
 }
 
 void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
@@ -107,6 +117,39 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
     free(vax_idx);
 }
 
+void draw_owners(Owners *os) {
+    int max_name_length = get_max_name_length(os);
+    for (int i = 0; i < os->length; i++) {
+        Owner *o = os->data + i;
+
+        econio_gotoxy(2, i + 2);
+        text_color(ON_SURFACE);
+        printf("%s", o->name);
+
+        econio_gotoxy(2 + max_name_length + 2, i + 2);
+        printf("%s", o->address);
+    
+        econio_gotoxy(2 + max_name_length + 2 + 30, i + 2);
+        printf("%s", o->contact);
+    }
+}
+
+void draw_animals(Animals *as) {
+    for (int i = 0; i < as->length; i++) {
+        Animal *a = as->data + i;
+
+        econio_gotoxy(2, i + 2);
+        text_color(ON_SURFACE);
+        printf("%s", a->name);
+
+        econio_gotoxy(20, i + 2);
+        printf("%s", a->species);
+    
+        econio_gotoxy(30, i + 2);
+        printf("%s", a->owner->name);
+    }
+}
+
 int main() {
     draw_background();
     
@@ -123,10 +166,18 @@ int main() {
     while (true) {
         draw_rect(0, 1, size.x, size.y - 1, SURFACE_CONTAINER);
 
-        if (tabs.selected_tab == 0) {
-            draw_vaccinations(os, as ,ts);
+        switch (tabs.selected_tab) {
+            case 0:
+                draw_vaccinations(os, as, ts);
+                break;
+            case 1:
+                draw_owners(os);
+                break;
+            case 2:
+                draw_animals(as);
+                break;
         }
-
+        
         int key = econio_getch();
 
         if (key == 'q' || key == KEY_ESCAPE)

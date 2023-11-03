@@ -1,3 +1,4 @@
+#include "debugmalloc.h"
 #include "econio.h"
 
 

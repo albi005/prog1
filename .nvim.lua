@@ -61,3 +61,5 @@ end)
 
 --- compile and run SDL2 program
 vim.keymap.set('n', '<Leader>s', ':!gcc ' .. options .. ' " %" `sdl2-config --cflags --libs` -lSDL2_gfx -lSDL2_ttf -lSDL2_image -lSDL2_mixer && ./a.out <CR>', { noremap = true });
+
+vim.keymap.set('n', '<Leader>h', ':ClangdSwitchSourceHeader<CR>');

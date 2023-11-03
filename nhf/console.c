@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include "debugmalloc.h"
+#include "econio.h"
+#include "utils.h"
+
+void text_color(unsigned int rgb) {
+    unsigned int b = rgb & 0xFF;
+    unsigned int g = (rgb >> 8) & 0xFF;
+    unsigned int r = (rgb >> 16) & 0xFF;
+    printf("\x1b[38;2;%d;%d;%dm", r, g, b);
+}
+
+void background_color(unsigned int rgb) {
+    unsigned int b = rgb & 0xFF;
+    unsigned int g = (rgb >> 8) & 0xFF;
+    unsigned int r = (rgb >> 16) & 0xFF;
+    printf("\x1b[48;2;%d;%d;%dm", r, g, b);
+}
+
+// https://stackoverflow.com/a/32936928
+size_t count_utf8_code_points(const char *s) {
+    size_t count = 0;
+    while (*s) {
+        count += (*s++ & 0xC0) != 0x80;
+    }
+    return count;
+}
+
+Vec2i get_terminal_size() {
+    printf("\e[9999;9999H"); // go to 9999, 9999
+    printf("\e[6n"); // ask for cursor position
+    char c;
+    while ((c = getchar()) != '['); // response is ESC[y;xR
+    Vec2i size;
+    scanf("%d;%d", &size.y, &size.x);
+    getchar(); // consume R
+    printf("\e[3J"); // clear screen
+    return size;
+}
+
+void draw_rect(int x, int y, int width, int height, unsigned int rgb) {
+    background_color(rgb);
+    for (int i = 0; i < height; i++) {
+        econio_gotoxy(x, y + i);
+        for (int j = 0; j < width; j++) {
+            printf(" ");
+        }
+    }
+}

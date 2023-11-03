@@ -1,70 +1,22 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include "animal.h"
+#include "console.h"
+#include "debugmalloc.h"
 #include "econio.h"
-
-// https://alb1.hu/#materialcolorutilities
-#define PRIMARY 0x9BD595
-#define ON_PRIMARY 0x00390A
-#define PRIMARY_CONTAINER 0x1C511F
-#define ON_PRIMARY_CONTAINER 0xB6F2AF
-#define SECONDARY 0xEEB8CA
-#define ON_SECONDARY 0x492534
-#define SECONDARY_CONTAINER 0x623B4A
-#define ON_SECONDARY_CONTAINER 0xFFD9E4
-#define TERTIARY 0xBEC3FA
-#define ON_TERTIARY 0x272C5A
-#define TERTIARY_CONTAINER 0x3E4372
-#define ON_TERTIARY_CONTAINER 0xDFE0FF
-#define ERROR 0xFFB4AB
-#define ON_ERROR 0x690005
-#define ERROR_CONTAINER 0x93000A
-#define ON_ERROR_CONTAINER 0xFFB4AB
-#define SURFACE 0x12131A
-#define ON_SURFACE 0xE3E1EC
-#define SURFACE_VARIANT 0x454654
-#define ON_SURFACE_VARIANT 0xC7C5D0
-#define OUTLINE 0x91909A
-#define INVERSE_SURFACE 0xE3E1EC
-#define INVERSE_ON_SURFACE 0x2F3038
-#define INVERSE_PRIMARY 0x356A35
-#define SURFACE_DIM 0x12131A
-#define SURFACE_BRIGHT 0x383841
-#define SURFACE_CONTAINER_LOWEST 0x0D0E15
-#define SURFACE_CONTAINER_LOW 0x1A1B23
-#define SURFACE_CONTAINER 0x1F1F27
-#define SURFACE_CONTAINER_HIGH 0x292931
-#define SURFACE_CONTAINER_HIGHEST 0x34343C
-#define OUTLINE_VARIANT 0x46464F
-
-void text_color(unsigned int rgb) {
-    unsigned int b = rgb & 0xFF;
-    unsigned int g = (rgb >> 8) & 0xFF;
-    unsigned int r = (rgb >> 16) & 0xFF;
-    printf("\x1b[38;2;%d;%d;%dm", r, g, b);
-}
-
-void background_color(unsigned int rgb) {
-    unsigned int b = rgb & 0xFF;
-    unsigned int g = (rgb >> 8) & 0xFF;
-    unsigned int r = (rgb >> 16) & 0xFF;
-    printf("\x1b[48;2;%d;%d;%dm", r, g, b);
-}
-
-// https://stackoverflow.com/a/32936928
-size_t count_utf8_code_points(const char *s) {
-    size_t count = 0;
-    while (*s) {
-        count += (*s++ & 0xC0) != 0x80;
-    }
-    return count;
-}
+#include "owner.h"
+#include "utils.h"
+#include "treatment.h"
 
 typedef struct {
     int selected_tab;
 } Tabs;
 
 void draw_tabs(Tabs* tabs) {
-    char* tabs_text[] = {"Oltás", "Tulajdonos", "Állat"};
+    char* tabs_text[] = {"Oltások", "Tulajdonosok", "Állatok"};
     int x = 0;
     for (int i = 0; i < 3; i++) {
         econio_gotoxy(x, 0);
@@ -75,7 +27,7 @@ void draw_tabs(Tabs* tabs) {
             text_color(ON_SURFACE_VARIANT);
             background_color(SURFACE_CONTAINER_LOWEST);
         }
-        printf("%s", tabs_text[i]);
+        printf(" %s ", tabs_text[i]);
         x += count_utf8_code_points(tabs_text[i]) + 2;
     }
 }
@@ -85,20 +37,101 @@ void draw_background() {
     econio_clrscr();
 }
 
+void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
+    time_t *last_vaccination = malloc(as->length * sizeof(time_t)); // animal id -> last vaccination
+    for (int i = 0; i < as->length; i++) last_vaccination[i] = 0;
+    for (int i = 0; i < ts->length; i++) {
+        Treatment t = ts->data[i];
+        Animal *a = t.animal;
+        size_t animal_index = a - as->data;
+        last_vaccination[animal_index] = t.date;
+    }
+
+    time_t *oldest_vaccination = (time_t*)malloc(os->length * sizeof(time_t)); // owner id -> oldest last vaccination (priority)
+    time_t current_time = time(NULL);
+    for (int i = 0; i < os->length; i++) oldest_vaccination[i] = current_time;
+    for (int i = 0; i < as->length; i++) {
+        Animal *a = as->data + i;
+        size_t animal_index = a - as->data;
+        Owner *o = a->owner;
+        size_t owner_index = o - os->data;
+        if (last_vaccination[animal_index] < oldest_vaccination[owner_index])
+            oldest_vaccination[owner_index] = last_vaccination[animal_index];
+    }
+
+    // order owners based on oldest vaccination.
+    // first owner should have the lowest
+    size_t *vax_idx = (size_t*)malloc(os->length * sizeof(size_t));
+    for (int i = 0; i < os->length; i++) vax_idx[i] = i;
+    for (int i = 0; i < os->length - 1; i++) {
+        for (int j = 0; j < os->length - i; i++) {
+            time_t a = oldest_vaccination[vax_idx[j]];
+            time_t b = oldest_vaccination[vax_idx[j + 1]];
+            if (a > b) {
+                size_t tmp = vax_idx[j + 1];
+                vax_idx[j + 1] = vax_idx[j];
+                vax_idx[j] = tmp;
+            }
+        }
+    }
+
+    for (int i = 0; i < os->length; i++) {
+        size_t idx = vax_idx[i];
+        Owner *o = os->data + idx;
+        time_t oldest = oldest_vaccination[idx];
+        size_t days = (current_time - oldest) / (60 * 60 * 24);
+
+        econio_gotoxy(2, i + 2);
+        if (days > 365)
+            text_color(ON_ERROR_CONTAINER);
+        else
+            text_color(ON_SURFACE);
+        if (oldest_vaccination == 0)
+            printf("soha");
+        else
+            printf("%zu napja", days);
+
+        econio_gotoxy(13, i + 2);
+        text_color(ON_SURFACE);
+        printf("%s", o->name);
+
+        econio_gotoxy(36, i + 2);
+        printf("%s", o->address);
+    
+        econio_gotoxy(70, i + 2);
+        printf("%s", o->contact);
+    }
+
+    free(last_vaccination);
+    free(oldest_vaccination);
+    free(vax_idx);
+}
+
 int main() {
     draw_background();
     
     Tabs tabs = {0};
-    
-    draw_tabs(&tabs);
+    Owners* os = open_owners();
+    Animals* as = open_animals(os);
+    Treatments* ts = open_treatments(as);
 
     econio_rawmode();
 
+    Vec2i size = get_terminal_size();
+    draw_tabs(&tabs);
+
     while (true) {
-        int key = econio_getch();
-        if (key == 'q') {
-            break;
+        draw_rect(0, 1, size.x, size.y - 1, SURFACE_CONTAINER);
+
+        if (tabs.selected_tab == 0) {
+            draw_vaccinations(os, as ,ts);
         }
+
+        int key = econio_getch();
+
+        if (key == 'q' || key == KEY_ESCAPE)
+            break;
+
         if (key == KEY_TAB) {
             tabs.selected_tab = (tabs.selected_tab + 1) % 3;
             draw_tabs(&tabs);
@@ -106,4 +139,7 @@ int main() {
     }
 
     econio_normalmode();
+    close_owners(os);
+    close_animals(as);
+    close_treatments(ts);
 }

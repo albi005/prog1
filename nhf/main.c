@@ -76,12 +76,12 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
             oldest_vaccinations[owner_index] = last_vaccination;
     }
 
-    // order owners based on oldest vaccination.
+    // bubble sort owners based on oldest vaccination.
     // first owner should have the lowest
     size_t *vax_idx = (size_t*)malloc(os->length * sizeof(size_t));
     for (int i = 0; i < os->length; i++) vax_idx[i] = i;
     for (int i = 0; i < os->length - 1; i++) {
-        for (int j = 0; j < os->length - i; i++) {
+        for (int j = 0; j < os->length - i - 1; j++) {
             time_t a = oldest_vaccinations[vax_idx[j]];
             time_t b = oldest_vaccinations[vax_idx[j + 1]];
             if (a > b) {

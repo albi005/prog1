@@ -15,6 +15,10 @@ typedef struct {
     int selected_tab;
 } Tabs;
 
+typedef struct {
+    int selected_index;
+} ListView;
+
 void draw_tabs(Tabs* tabs) {
     char* tabs_text[] = {"Oltások", "Tulajdonosok", "Állatok"};
     int x = 0;
@@ -47,7 +51,7 @@ int get_max_name_length(Owners *os) {
     return longest;
 }
 
-void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
+void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_view) {
     // animal id -> last vaccination
     time_t *last_vaccinations = malloc(as->length * sizeof(time_t));
     for (int i = 0; i < as->length; i++) last_vaccinations[i] = 0;
@@ -97,6 +101,12 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts) {
         Owner *o = os->data + idx;
         time_t oldest = oldest_vaccinations[idx];
         size_t days = (current_time - oldest) / (60 * 60 * 24);
+        bool is_selected = list_view->selected_index == i;
+
+        if (is_selected)
+            draw_rect(0, i + 2, 120, 1, SURFACE_VARIANT);
+        else
+            background_color(SURFACE_CONTAINER);
 
         econio_gotoxy(2, i + 2);
         if (days > 365)
@@ -164,7 +174,11 @@ void draw_animals(Animals *as) {
 int main() {
     draw_background();
     
+    // view model
     Tabs tabs = {0};
+    ListView list_view = {0};
+
+    // model
     Owners* os = open_owners();
     Animals* as = open_animals(os);
     Treatments* ts = open_treatments(as);
@@ -175,11 +189,12 @@ int main() {
     draw_tabs(&tabs);
 
     while (true) {
+        // view
         draw_rect(0, 1, size.x, size.y - 1, SURFACE_CONTAINER);
 
         switch (tabs.selected_tab) {
             case 0:
-                draw_vaccinations(os, as, ts);
+                draw_vaccinations(os, as, ts, &list_view);
                 break;
             case 1:
                 draw_owners(os);
@@ -189,15 +204,27 @@ int main() {
                 break;
         }
         
+        // input
         int key = econio_getch();
 
-        if (key == 'q' || key == KEY_ESCAPE)
-            break;
-
-        if (key == KEY_TAB) {
-            tabs.selected_tab = (tabs.selected_tab + 1) % 3;
-            draw_tabs(&tabs);
+        switch (key) {
+            case KEY_DOWN:
+            case 'j':
+                list_view.selected_index++;
+                if (list_view.selected_index >= os->length) list_view.selected_index = os->length - 1;
+                break;
+            case KEY_UP:
+            case 'k':
+                list_view.selected_index--;
+                if (list_view.selected_index < 0) list_view.selected_index = 0;
+                break;
+            case KEY_TAB:
+                tabs.selected_tab = (tabs.selected_tab + 1) % 3;
+                draw_tabs(&tabs);
+                break;
         }
+
+        if (key == KEY_ESCAPE || key == 'q') break;
     }
 
     econio_normalmode();

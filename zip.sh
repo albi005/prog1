@@ -18,7 +18,7 @@ if [ ! -d "./$directory_name" ]; then
 fi
 
 # Create a ZIP file with the same name as the directory
-(cd "$directory_name" && zip -r "$directory_name.zip" ./*.c)
+(cd "$directory_name" && zip -r "$directory_name.zip" ./*.c ./*.h)
 
 # Check if the ZIP file was created successfully
 if [ $? -eq 0 ]; then

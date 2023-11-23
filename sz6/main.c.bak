@@ -1,0 +1,152 @@
+#include <SDL.h>
+#include <SDL2_gfxPrimitives.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include "tavak.c"
+#include "vilag.c"
+#include "debugmalloc.h"
+
+typedef struct Point {
+    float x;
+    float y;
+    struct Point* next;
+} Point;
+
+typedef struct Polygon {
+    Point* first_point;
+    Point* last_point;
+    size_t point_count;
+    struct Polygon* next;
+} Polygon;
+
+typedef struct Shape {
+    Polygon* first_polygon;
+    Polygon* last_polygon;
+} Shape;
+
+Shape* read_shape(float const coordinates[]) {
+    Shape* shape = malloc(sizeof(Shape));
+    shape->last_polygon = NULL;
+    shape->first_polygon = NULL;
+
+    for (int i = 0; vilag[i] != 0; i += 2) {
+        float x, y;
+        x = vilag[i];
+        y = vilag[i+1];
+
+        if (x == 1 && y == 1)
+            break;
+
+        if ((x == 0 && y == 0) || shape->first_polygon == NULL)
+        {
+            // Start new polygon
+            Polygon* new = malloc(sizeof(Polygon));
+            new->next = NULL;
+            new->first_point = new->last_point = NULL;
+            new->point_count = 0;
+            if (shape->first_polygon == NULL) 
+                shape->first_polygon = shape->last_polygon = new;
+            else {
+                shape->last_polygon->next = new;
+                shape->last_polygon = new;
+                continue;
+            }
+        }
+
+        Point* point = malloc(sizeof(Point));
+        point->next = NULL;
+        point->x = x;
+        point->y = y;
+
+        Polygon* polygon = shape->last_polygon;
+        if (polygon->first_point == NULL)
+            polygon->first_point = polygon->last_point = point;
+        else {
+            polygon->last_point->next = point;
+            polygon->last_point = point;
+        } 
+    }
+
+    return shape;
+}
+
+void draw_shape(Shape* shape, Uint32 color, SDL_Renderer* renderer) {
+    Polygon* polygon = shape->first_polygon;
+    while (polygon != NULL) {
+        float* xs = malloc(sizeof(float) * polygon->point_count);
+        float* ys = malloc(sizeof(float) * polygon->point_count);
+
+        size_t i = 0;
+        Point* point = polygon->first_point;
+        while (point != NULL) {
+            Point* next = point->next;
+            if (next != NULL)
+                lineColor(renderer, point->x, point->y, next->x, next->y, color);
+            point = next;
+        }
+        polygon = polygon->next;
+    }
+}
+
+void free_shape(Shape* shape) {
+    Polygon* polygon = shape->first_polygon;
+    while (polygon != NULL) {
+        Point* point = polygon->first_point;
+        while (point != NULL) {
+            Point* next = point->next;
+            free(point);
+            point = next;
+        }
+        Polygon* next = polygon->next;
+        free(polygon);
+        polygon = next;
+    }
+    free(shape);
+}
+ 
+int main(int argc, char *argv[]) {
+    /* SDL inicializálása és ablak megnyitása */
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        SDL_Log("Nem indithato az SDL: %s", SDL_GetError());
+        exit(1);
+    }
+    SDL_Window *window = SDL_CreateWindow("SDL peldaprogram", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1080, 540, 0);
+    if (window == NULL) {
+        SDL_Log("Nem hozhato letre az ablak: %s", SDL_GetError());
+        exit(1);
+    }
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    if (renderer == NULL) {
+        SDL_Log("Nem hozhato letre a megjelenito: %s", SDL_GetError());
+        exit(1);
+    }
+    SDL_RenderClear(renderer);
+
+    Shape* world = read_shape(vilag);
+    Shape* lakes = read_shape(tavak);
+
+    // "általad választott színekkel"
+    draw_shape(world, 0x00FF00FF, renderer);
+    draw_shape(lakes, 0x0000FFFF, renderer);
+    
+
+
+    free_shape(world);
+    free_shape(lakes);
+
+    /* az elvegzett rajzolasok a kepernyore */
+    SDL_RenderPresent(renderer);
+ 
+    /* varunk a kilepesre */
+    SDL_Event ev;
+    while (SDL_WaitEvent(&ev) && ev.type != SDL_QUIT) {
+        /* SDL_RenderPresent(renderer); - MacOS Mojave esetén */
+    }
+ 
+    /* ablak bezarasa */
+    SDL_Quit();
+ 
+    return 0;
+}
+

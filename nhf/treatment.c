@@ -49,12 +49,12 @@ Treatments *open_treatments(Animals *animals) {
         size_t r = animals->length - 1;
         while (l <= r) {
             size_t m = (l + r) / 2;
-            if (animals->data[m].id < animal_id)
+            if (animals->data[m]->id < animal_id)
                 l = m + 1;
-            else if (animals->data[m].id > animal_id)
+            else if (animals->data[m]->id > animal_id)
                 r = m - 1;
             else {
-                treatment.animal = &animals->data[m];
+                treatment.animal = animals->data[m];
                 break;
             }
         }
@@ -77,5 +77,5 @@ void close_treatments(Treatments *treatments) {
     free(treatments);
 }
 
-Treatment *create_treatment(Treatments *treatments, Owner *animal, char *name, char *species);
+Treatment *create_treatment(Treatments *treatments, Animal *animal, char *name, char *species);
 void remove_treatment(Treatments *treatments, Treatment *treatment);

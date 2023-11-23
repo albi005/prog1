@@ -42,6 +42,7 @@ void text_color(unsigned int rgb);
 void background_color(unsigned int rgb);
 size_t count_utf8_code_points(const char *s);
 Vec2i get_terminal_size();
-void draw_rect(int x, int y, int width, int height, unsigned int rgb);
+void draw_rect(Rect rect, unsigned int rgb);
+bool confirm(const char *message);
 
 #endif // CONSOLE_H

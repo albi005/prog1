@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include "debugmalloc.h"
 #include "econio.h"
@@ -37,13 +38,16 @@ Vec2i get_terminal_size() {
     printf("\e[3J"); // clear screen
     return size;
 }
-
-void draw_rect(int x, int y, int width, int height, unsigned int rgb) {
+void draw_rect(Rect rect, unsigned int rgb) {
     background_color(rgb);
-    for (int i = 0; i < height; i++) {
-        econio_gotoxy(x, y + i);
-        for (int j = 0; j < width; j++) {
+    for (int i = 0; i < rect.h; i++) {
+        econio_gotoxy(rect.x, rect.y + i);
+        for (int j = 0; j < rect.w; j++) {
             printf(" ");
         }
     }
+}
+
+bool confirm(const char *message) {
+    abort(); // TODO
 }

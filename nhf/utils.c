@@ -27,3 +27,11 @@ char *read_line(FILE *f) {
         s[len] = (long)NULL;
     }
 }
+
+Rect add_margin(Rect rect, int horizontal, int vertical) {
+    rect.x += horizontal;
+    rect.y += vertical;
+    rect.w -= horizontal * 2;
+    rect.h -= vertical * 2;
+    return rect;
+}

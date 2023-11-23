@@ -1,6 +1,7 @@
 **.gch
 **.out
 **.zip
+**.pdf
 .cache
 .direnv
 bin

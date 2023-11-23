@@ -15,9 +15,14 @@ dap.configurations.c = {
                 cmd = '!gcc ' .. options .. ' "' .. vim.fn.expand('%') .. '"'
             end
             vim.cmd(cmd)
-            return 'a.out'
+            return '${workspaceFolder}/a.out'
         end,
-        cwd = '${workspaceFolder}',
+        cwd = function ()
+            if string.find(vim.fn.expand('%'), 'nhf') then
+                return '${workspaceFolder}/nhf'
+            end
+            return '${workspaceFolder}'
+        end,
         stopAtEntry = false,
         setupCommands = {
             {
@@ -56,10 +61,12 @@ vim.keymap.set('n', '<Leader>t', function ()
     end
     vim.cmd(cmd)
 
-    vim.cmd(':te ./a.out')
+    local dir = vim.fn.expand('%:p:h')
+
+    vim.cmd(':te (cd ' .. dir .. ' && ../a.out)')
 end)
 
 --- compile and run SDL2 program
-vim.keymap.set('n', '<Leader>s', ':!gcc ' .. options .. ' " %" `sdl2-config --cflags --libs` -lSDL2_gfx -lSDL2_ttf -lSDL2_image -lSDL2_mixer && ./a.out <CR>', { noremap = true });
+vim.keymap.set('n', '<Leader>s', ':!gcc ' .. options .. ' "%" `sdl2-config --cflags --libs` -lSDL2_gfx -lSDL2_ttf -lSDL2_image -lSDL2_mixer && ./a.out <CR>', { noremap = true });
 
 vim.keymap.set('n', '<Leader>h', ':ClangdSwitchSourceHeader<CR>');

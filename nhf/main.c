@@ -7,24 +7,23 @@
 #include "console.h"
 #include "debugmalloc.h"
 #include "econio.h"
+#include "input.h"
 #include "owner.h"
-#include "utils.h"
+#include "states.h"
 #include "treatment.h"
+#include "utils.h"
 
-typedef struct {
-    int selected_tab;
-} Tabs;
+void draw_background() {
+    background_color(SURFACE_CONTAINER_LOWEST);
+    econio_clrscr();
+}
 
-typedef struct {
-    int selected_index;
-} ListView;
-
-void draw_tabs(Tabs* tabs) {
+void draw_tabs(TabsState tabs_state) {
     char* tabs_text[] = {"Oltások", "Tulajdonosok", "Állatok"};
     int x = 0;
     for (int i = 0; i < 3; i++) {
         econio_gotoxy(x, 0);
-        if (i == tabs->selected_tab) {
+        if (i == tabs_state) {
             text_color(ON_SURFACE);
             background_color(SURFACE_CONTAINER);
         } else {
@@ -36,22 +35,17 @@ void draw_tabs(Tabs* tabs) {
     }
 }
 
-void draw_background() {
-    background_color(SURFACE_CONTAINER_LOWEST);
-    econio_clrscr();
-}
-
 int get_max_name_length(Owners *os) {
     int longest = 0;
-    for (int i = 0; i < os->length; i++) {
-        Owner *o = os->data + i;
+    for (int i = 0; i < os->count; i++) {
+        Owner *o = os->data[i];
         int len = count_utf8_code_points(o->name);
         if (len > longest) longest = len;
     }
     return longest;
 }
 
-void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_view) {
+void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_index) {
     // animal id -> last vaccination
     time_t *last_vaccinations = malloc(as->length * sizeof(time_t));
     for (int i = 0; i < as->length; i++) last_vaccinations[i] = 0;
@@ -59,21 +53,21 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_v
         Treatment t = ts->data[i];
         if (!t.was_rabies_vaccinated) continue;
 
-        Animal *a = t.animal;
-        size_t animal_index = a - as->data;
+        Animal *animal = t.animal;
+        size_t animal_index = animal->index;
         if (t.date > last_vaccinations[animal_index])
             last_vaccinations[animal_index] = t.date;
     }
 
     // owner id -> oldest last vaccination (priority)
-    time_t *oldest_vaccinations = (time_t*)malloc(os->length * sizeof(time_t));
+    time_t *oldest_vaccinations = (time_t*)malloc(os->count * sizeof(time_t));
     time_t current_time = time(NULL);
     time_t max_time = current_time + 1; // if the redraw was triggered by a new treatment, its date might equal the current time
-    for (int i = 0; i < os->length; i++) oldest_vaccinations[i] = max_time;
+    for (int i = 0; i < os->count; i++) oldest_vaccinations[i] = max_time;
     for (int animal_index = 0; animal_index < as->length; animal_index++) {
-        Animal *animal = as->data + animal_index;
+        Animal *animal = as->data[animal_index];
         Owner *owner = animal->owner;
-        size_t owner_index = owner - os->data;
+        size_t owner_index = owner->index;
         time_t oldest_vaccination = oldest_vaccinations[owner_index];
         time_t last_vaccination = last_vaccinations[animal_index];
         if (last_vaccination < oldest_vaccination)
@@ -81,11 +75,11 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_v
     }
 
     // bubble sort owners based on oldest vaccination.
-    // first owner should have the lowest
-    size_t *vax_idx = (size_t*)malloc(os->length * sizeof(size_t));
-    for (int i = 0; i < os->length; i++) vax_idx[i] = i;
-    for (int i = 0; i < os->length - 1; i++) {
-        for (int j = 0; j < os->length - i - 1; j++) {
+    // first owner should have the lowest value.
+    size_t *vax_idx = (size_t*)malloc(os->count * sizeof(size_t));
+    for (int i = 0; i < os->count; i++) vax_idx[i] = i;
+    for (int i = 0; i < os->count - 1; i++) {
+        for (int j = 0; j < os->count - i - 1; j++) {
             time_t a = oldest_vaccinations[vax_idx[j]];
             time_t b = oldest_vaccinations[vax_idx[j + 1]];
             if (a > b) {
@@ -96,15 +90,15 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_v
         }
     }
 
-    for (int i = 0; i < os->length; i++) {
+    for (int i = 0; i < os->count; i++) {
         size_t idx = vax_idx[i];
-        Owner *o = os->data + idx;
+        Owner *o = os->data[idx];
         time_t oldest = oldest_vaccinations[idx];
         size_t days = (current_time - oldest) / (60 * 60 * 24);
-        bool is_selected = list_view->selected_index == i;
+        bool is_selected = selected_index == i;
 
         if (is_selected)
-            draw_rect(0, i + 2, 120, 1, SURFACE_VARIANT);
+            draw_rect((Rect){0, i + 2, 120, 1}, SURFACE_VARIANT);
         else
             background_color(SURFACE_CONTAINER);
 
@@ -140,8 +134,8 @@ void draw_vaccinations(Owners *os, Animals *as, Treatments *ts, ListView *list_v
 
 void draw_owners(Owners *os) {
     int max_name_length = get_max_name_length(os);
-    for (int i = 0; i < os->length; i++) {
-        Owner *o = os->data + i;
+    for (int i = 0; i < os->count; i++) {
+        Owner *o = os->data[i];
 
         econio_gotoxy(2, i + 2);
         text_color(ON_SURFACE);
@@ -157,7 +151,7 @@ void draw_owners(Owners *os) {
 
 void draw_animals(Animals *as) {
     for (int i = 0; i < as->length; i++) {
-        Animal *a = as->data + i;
+        Animal *a = as->data[i];
 
         econio_gotoxy(2, i + 2);
         text_color(ON_SURFACE);
@@ -171,66 +165,102 @@ void draw_animals(Animals *as) {
     }
 }
 
+void draw_owner_details(Owner *owner, Animals* as, Rect bounds) {
+    draw_rect(bounds, SURFACE_CONTAINER_HIGH);
+    background_color(SURFACE_CONTAINER_HIGH);
+    text_color(ON_SURFACE);
+
+    int x = bounds.x + 2;
+    int y = bounds.y + 1;
+
+    econio_gotoxy(x, y);
+    printf("Név: %s", owner->name);
+    econio_gotoxy(x, y += 1);
+    printf("Cím: %s", owner->address);
+    econio_gotoxy(x, y += 1);
+    printf("Elérhetőség: %s", owner->contact);
+
+    y++;
+    for (int i = 0; i < as->length; i++) {
+        Animal *a = as->data[i];
+        if (a->owner == owner) {
+            econio_gotoxy(x, y += 1);
+            text_color(ON_SURFACE);
+            printf("%s ", a->name);
+            text_color(ON_SURFACE_VARIANT);
+            printf("%s", a->species);
+        }
+    }
+}
+
 int main() {
-    draw_background();
-    
-    // view model
-    Tabs tabs = {0};
-    ListView list_view = {0};
+    // init state
+    Tabs tabs;
+    tabs.state = TabsState_Vax;
+    tabs.vax_tab.state = VaxTabState_Selecting;
+    tabs.vax_tab.selected_index = 0;
 
-    // model
-    Owners* os = open_owners();
-    Animals* as = open_animals(os);
-    Treatments* ts = open_treatments(as);
+    // init data
+    Owners* owners = open_owners();
+    Animals* animals = open_animals(owners);
+    Treatments* treatments = open_treatments(animals);
 
+    // init screen
     econio_rawmode();
-
-    Vec2i size = get_terminal_size();
-    draw_tabs(&tabs);
-
+    Vec2i screen_size = get_terminal_size();
+    Rect screen_bounds = {0, 0, screen_size.x, screen_size.y};
+    
+    // main loop
     while (true) {
-        // view
-        draw_rect(0, 1, size.x, size.y - 1, SURFACE_CONTAINER);
+        // draw
+        draw_background();
+        draw_tabs(tabs.state);
 
-        switch (tabs.selected_tab) {
-            case 0:
-                draw_vaccinations(os, as, ts, &list_view);
+        Rect tab_bounds = {0, 1, screen_bounds.w, screen_bounds.h - 1};
+        draw_rect(tab_bounds, SURFACE_CONTAINER);
+
+        switch (tabs.state) {
+            case TabsState_Vax:
+            {
+                VaxTab vax_tab = tabs.vax_tab;
+                draw_vaccinations(owners, animals, treatments, vax_tab.selected_index);
+                switch (vax_tab.state) {
+                    case VaxTabState_Selecting:
+                        break;
+                    case VaxTabState_Details:
+                    {
+                        draw_owner_details(
+                            owners->data[vax_tab.selected_index],
+                            animals,
+                            add_margin(screen_bounds, 6, 3)
+                        );
+                        break;
+                    }
+                }
                 break;
-            case 1:
-                draw_owners(os);
+            }
+            case TabsState_Owners:
+                draw_owners(owners);
                 break;
-            case 2:
-                draw_animals(as);
+            case TabsState_Animals:
+                draw_animals(animals);
                 break;
         }
-        
+
         // input
         int key = econio_getch();
 
-        switch (key) {
-            case KEY_DOWN:
-            case 'j':
-                list_view.selected_index++;
-                if (list_view.selected_index >= os->length) list_view.selected_index = os->length - 1;
-                break;
-            case KEY_UP:
-            case 'k':
-                list_view.selected_index--;
-                if (list_view.selected_index < 0) list_view.selected_index = 0;
-                break;
-            case KEY_TAB:
-                tabs.selected_tab = (tabs.selected_tab + 1) % 3;
-                draw_tabs(&tabs);
-                break;
-        }
+        bool quit;
+        handle_input(key, &tabs, owners, animals, treatments, &quit);
 
-        if (key == KEY_ESCAPE || key == 'q') break;
+        if (quit)
+            break;
     }
 
     econio_normalmode();
-    close_owners(os);
-    close_animals(as);
-    close_treatments(ts);
+    close_owners(owners);
+    close_animals(animals);
+    close_treatments(treatments);
 
     printf("\n");
 }

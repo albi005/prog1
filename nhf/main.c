@@ -250,7 +250,7 @@ int main() {
         // input
         int key = econio_getch();
 
-        bool quit;
+        bool quit = false;
         handle_input(key, &tabs, owners, animals, treatments, &quit);
 
         if (quit)

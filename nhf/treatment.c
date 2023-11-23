@@ -6,15 +6,15 @@
 #include "treatment.h"
 
 static void add_treatment(Treatments *treatments, Treatment treatment) {
-    treatments->length++;
-    if (treatments->length > treatments->capacity) {
+    treatments->count++;
+    if (treatments->count > treatments->capacity) {
         if (treatments->capacity < 10)
             treatments->capacity = 10;
         else 
             treatments->capacity *= 2;
         treatments->data = (Treatment*)realloc(treatments->data, treatments->capacity * sizeof(Treatment));
     }
-    treatments->data[treatments->length - 1] = treatment;
+    treatments->data[treatments->count - 1] = treatment;
 }
 
 Treatments *open_treatments(Animals *animals) {
@@ -22,7 +22,7 @@ Treatments *open_treatments(Animals *animals) {
 
     Treatments *treatments = malloc(sizeof(Treatments));
     treatments->file = f;
-    treatments->length = 0;
+    treatments->count = 0;
     treatments->capacity = 0;
     treatments->data = NULL;
 
@@ -46,7 +46,7 @@ Treatments *open_treatments(Animals *animals) {
 
         // https://en.wikipedia.org/wiki/Binary_search_algorithm#Procedure
         size_t l = 0;
-        size_t r = animals->length - 1;
+        size_t r = animals->count - 1;
         while (l <= r) {
             size_t m = (l + r) / 2;
             if (animals->data[m]->id < animal_id)
@@ -70,7 +70,7 @@ Treatments *open_treatments(Animals *animals) {
     return treatments;
 }
 void close_treatments(Treatments *treatments) {
-    for (int i = 0; i < treatments->length; i++) {
+    for (int i = 0; i < treatments->count; i++) {
         free(treatments->data[i].description);
     }
     free(treatments->data);

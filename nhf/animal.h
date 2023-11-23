@@ -17,7 +17,7 @@ typedef struct Animal {
 } Animal;
 
 typedef struct Animals {
-    size_t length;
+    size_t count;
     size_t capacity;
     Animal** data;
     FILE *file;

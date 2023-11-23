@@ -13,5 +13,6 @@ typedef struct {
 
 char *read_line(FILE *f);
 Rect add_margin(Rect rect, int horizontal, int vertical);
+char* copy_string(char* s);
 
 #endif

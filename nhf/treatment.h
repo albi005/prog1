@@ -19,7 +19,7 @@ typedef struct Treatment {
 } Treatment;
 
 typedef struct Treatments {
-    size_t length;
+    size_t count;
     size_t capacity;
     Treatment *data;
     FILE *file;

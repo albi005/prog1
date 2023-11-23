@@ -1,6 +1,11 @@
 #ifndef STATES_H
 #define STATES_H
 
+#include "animal.h"
+#include "owner.h"
+#include "treatment.h"
+#include "utils.h"
+
 typedef enum {
     TreatmentDetailsState_Selecting,
     TreatmentDetailsState_Editing
@@ -8,8 +13,9 @@ typedef enum {
 
 typedef struct {
     TreatmentDetailsState state;
+    Treatment* treatment;
     int selected_index;
-    char* new_value;
+    char* old_value;
 } TreatmentDetails;
 
 typedef enum {
@@ -20,8 +26,9 @@ typedef enum {
 
 typedef struct {
     AnimalDetailsState state;
+    Animal* animal;
     int selected_index;
-    char* new_value;
+    char* old_value;
     TreatmentDetails treatment_details;
 } AnimalDetails;
 
@@ -33,8 +40,9 @@ typedef enum {
 
 typedef struct {
     OwnerDetailsState state;
+    Owner* owner;
     int selected_index;
-    char* new_value;
+    char* old_value;
     AnimalDetails animal_details;
 } OwnerDetails;
 
@@ -83,5 +91,19 @@ typedef struct {
     OwnersTab owners_tab;
     AnimalsTab animals_tab;
 } Tabs;
+
+typedef enum {
+    AppState_Tabs,
+    AppState_Exit
+} AppState;
+
+typedef struct {
+    AppState state;
+    Tabs tabs;
+    Vec2i screen_size;
+    Owners* owners;
+    Animals* animals;
+    Treatments* treatments;
+} App;
 
 #endif // STATES_H

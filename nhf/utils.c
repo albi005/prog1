@@ -35,3 +35,12 @@ Rect add_margin(Rect rect, int horizontal, int vertical) {
     rect.h -= vertical * 2;
     return rect;
 }
+
+char* copy_string(char* s) {
+    if (s == NULL)
+        return NULL;
+    
+    char* copy = malloc(sizeof(char) * (strlen(s) + 1));
+    strcpy(copy, s);
+    return copy;
+}

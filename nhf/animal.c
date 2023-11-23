@@ -9,29 +9,29 @@
 Animals* new_animals() {
     Animals *animals = malloc(sizeof(Animals));
     animals->file = NULL;
-    animals->length = 0;
+    animals->count = 0;
     animals->capacity = 0;
     animals->data = NULL;
     return animals;
 }
 
 void add_animal(Animals* animals, Animal* animal) {
-    animals->length++;
-    if (animals->length > animals->capacity) {
+    animals->count++;
+    if (animals->count > animals->capacity) {
         if (animals->capacity < 10)
             animals->capacity = 10;
         else 
             animals->capacity *= 2;
         animals->data = (Animal**)realloc(animals->data, animals->capacity * sizeof(Animal*));
     }
-    animals->data[animals->length - 1] = animal;
+    animals->data[animals->count - 1] = animal;
 }
 
 void remove_animal(Animals *animals, Animal *animal) {
-    size_t index = animals->length;
+    size_t index = animals->count;
     if (animals->file != NULL) index = animal->index;
     else {
-        for (size_t i = 0; i < animals->length; i++) {
+        for (size_t i = 0; i < animals->count; i++) {
             if (animals->data[i] == animal)
             {
                 index = i;
@@ -40,8 +40,8 @@ void remove_animal(Animals *animals, Animal *animal) {
         }
     }
 
-    animals->length--;
-    for (size_t i = index; i < animals->length; i++) {
+    animals->count--;
+    for (size_t i = index; i < animals->count; i++) {
         animals->data[i] = animals->data[i + 1];
     }
 }
@@ -92,7 +92,7 @@ Animals* open_animals(Owners *owners) {
 }
 
 void close_animals(Animals *animals) {
-    for (int i = 0; i < animals->length; i++) {
+    for (int i = 0; i < animals->count; i++) {
         free(animals->data[i]->name);
         free(animals->data[i]->species);
         free(animals->data[i]);
@@ -105,16 +105,16 @@ void close_animals(Animals *animals) {
 Animal* create_animal(Animals *animals, Owner *owner, char *name, char *species) {
     Animal *animal = malloc(sizeof(Animal));
 
-    if (animals->length == 0)
+    if (animals->count == 0)
         animal->id = 1;
     else
-        animal->id = animals->data[animals->length - 1]->id + 1;
+        animal->id = animals->data[animals->count - 1]->id + 1;
 
     animal->owner = owner;
     animal->name = name;
     animal->species = species;
     add_animal(animals, animal);
-    animal->index = animals->length - 1;
+    animal->index = animals->count - 1;
     add_animal(owner->animals, animal);
     return animal;
 }

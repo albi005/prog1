@@ -6,6 +6,6 @@
 #include "animal.h"
 #include "treatment.h"
 
-void handle_input(char input, Tabs* tabs, Owners* owners, Animals* animals, Treatments* treatments, bool* quit);
+void handle_input(char input, App* app);
 
 #endif // INPUT_H

@@ -1,5 +1,8 @@
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
+#include "console.h"
 #include "debugmalloc.h"
 #include "econio.h"
 #include "utils.h"

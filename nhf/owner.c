@@ -77,7 +77,7 @@ Owner *create_owner(Owners *owners, char *name, char *address, char *contact) {
 }
 
 void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments) {
-    for (int i = 0; i < owner->animals->length; i++){
+    for (int i = 0; i < owner->animals->count; i++){
         Animal *animal = owner->animals->data[i];
         delete_animal(animal, animals, treatments);
     }

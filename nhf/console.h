@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 // https://alb1.hu/#materialcolorutilities btw
 #define PRIMARY 0x9BD595

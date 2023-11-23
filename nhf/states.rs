@@ -31,7 +31,7 @@ enum OwnerDetails {
     Details(Animal, AnimalDetails),
 }
 
-enum AnimalDetails(
+enum AnimalDetails {
     Selecting(u32),
     EditingProperty(char*),
     Details(Treatment, TreatmentDetails),

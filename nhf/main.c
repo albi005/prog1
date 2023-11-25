@@ -15,7 +15,6 @@
 #include "treatment.h"
 #include "utils.h"
 
-
 int main() {
     // init state
     App app;

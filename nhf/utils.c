@@ -44,3 +44,7 @@ char* copy_string(char* s) {
     strcpy(copy, s);
     return copy;
 }
+
+int days_since(time_t date, time_t now) {
+    return (now - date) / (60 * 60 * 24);
+}

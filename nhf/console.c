@@ -21,12 +21,16 @@ void background_color(unsigned int rgb) {
     printf("\x1b[48;2;%d;%d;%dm", r, g, b);
 }
 
+// https://en.wikipedia.org/wiki/UTF-8#Encoding
+bool is_continuation_byte(char c) {
+    return (c & 0b11000000) == 0b10000000;
+}
+
 // https://stackoverflow.com/a/32936928
 size_t count_utf8_code_points(const char *s) {
     size_t count = 0;
-    while (*s) {
-        count += (*s++ & 0xC0) != 0x80;
-    }
+    while (*s)
+        count += !is_continuation_byte(*s++);
     return count;
 }
 

@@ -4,6 +4,7 @@
 #include "debugmalloc.h"
 #include "animal.h"
 #include "owner.h"
+#include "treatment.h"
 #include "utils.h"
 
 Animals* new_animals() {
@@ -111,6 +112,7 @@ Animal* create_animal(Animals *animals, Owner *owner, char *name, char *species)
         animal->id = animals->data[animals->count - 1]->id + 1;
 
     animal->owner = owner;
+    animal->treatments = new_treatments();
     animal->name = name;
     animal->species = species;
     add_animal(animals, animal);
@@ -120,5 +122,9 @@ Animal* create_animal(Animals *animals, Owner *owner, char *name, char *species)
 }
 
 void delete_animal(Animal *animal, Animals *animals, Treatments *treatments) {
+    for (int i = 0; i < animal->treatments->count; i++) {
+        Treatment* treatment = animal->treatments->data[i];
+        delete_treatment(treatment, treatments);
+    }
     // TODO
 }

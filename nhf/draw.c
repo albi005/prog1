@@ -47,13 +47,13 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
     time_t *last_vaccinations = malloc(as->count * sizeof(time_t));
     for (int i = 0; i < as->count; i++) last_vaccinations[i] = 0;
     for (int i = 0; i < ts->count; i++) {
-        Treatment t = ts->data[i];
-        if (!t.was_rabies_vaccinated) continue;
+        Treatment* t = ts->data[i];
+        if (!t->was_rabies_vaccinated) continue;
 
-        Animal *animal = t.animal;
+        Animal *animal = t->animal;
         size_t animal_index = animal->index;
-        if (t.date > last_vaccinations[animal_index])
-            last_vaccinations[animal_index] = t.date;
+        if (t->date > last_vaccinations[animal_index])
+            last_vaccinations[animal_index] = t->date;
     }
 
     // owner id -> oldest last vaccination (priority)
@@ -91,7 +91,7 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
         size_t idx = vax_idx[i];
         Owner *o = os->data[idx];
         time_t oldest = oldest_vaccinations[idx];
-        size_t days = (current_time - oldest) / (60 * 60 * 24);
+        size_t days = days_since(oldest, current_time);
         bool is_selected = selected_index == i;
 
         if (is_selected) {
@@ -186,7 +186,53 @@ void draw_property(int x, int y, char* key, char* value, bool is_selected, bool 
     }
     else text_color(ON_SURFACE);
 
-    printf("%s", value);
+    if (value == NULL || value[0] == 0)
+        printf("  ");
+    else
+        printf("%s", value);
+}
+
+void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
+    draw_rect(bounds, SURFACE_CONTAINER_HIGHEST);
+    background_color(SURFACE_CONTAINER_HIGHEST);
+    text_color(ON_SURFACE);
+
+    int x = bounds.x + 4;
+    int y = bounds.y + 1;
+
+    Animal* animal = animal_details->animal;
+    int selected_index = animal_details->selected_index;
+    bool editing = animal_details->state == AnimalDetailsState_Editing;
+
+    draw_property(x, y += 1, "Név", animal->name, selected_index == 0, editing, SURFACE_CONTAINER_HIGHEST);
+    draw_property(x, y += 1, "Faj", animal->species, selected_index == 1, editing, SURFACE_CONTAINER_HIGHEST);
+    draw_property(x, y += 1, "Tulajdonos", animal->owner->name, false, editing, SURFACE_CONTAINER_HIGHEST);
+    draw_property(x, y += 1, "Cím", animal->owner->address, false, editing, SURFACE_CONTAINER_HIGHEST);
+
+    selected_index -= ANIMAL_PROPERTY_COUNT;
+    y++;
+    time_t current_time = time(NULL);
+    for (int i = 0; i < animal->treatments->count; i++) {
+        y++;
+        Treatment *treatment = animal->treatments->data[i];
+
+        bool selected = selected_index == i;
+        if (selected)
+            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, SURFACE_VARIANT);
+        else
+            background_color(SURFACE_CONTAINER_HIGHEST);
+
+        econio_gotoxy(x, y);
+        text_color(ON_SURFACE);
+        if (treatment->was_rabies_vaccinated)
+            printf("💉 ");
+        else
+            printf("   ");
+        printf("%d napja  ", days_since(treatment->date, current_time));
+
+        text_color(ON_SURFACE_VARIANT);
+        printf("%s", treatment->description);
+    }
 }
 
 void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
@@ -194,7 +240,7 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
     background_color(SURFACE_CONTAINER_HIGH);
     text_color(ON_SURFACE);
 
-    int x = bounds.x + 2;
+    int x = bounds.x + 4;
     int y = bounds.y + 1;
 
     Owner* owner = owner_details->owner;
@@ -213,17 +259,20 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
 
         bool selected = selected_index == i;
         if (selected)
-            draw_rect((Rect){x - 1, y, bounds.w - 2, 1}, SURFACE_VARIANT);
+            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, SURFACE_VARIANT);
         else
             background_color(SURFACE_CONTAINER_HIGH);
 
         econio_gotoxy(x, y);
         text_color(ON_SURFACE);
-        printf("%s ", animal->name);
+        printf("%s  ", animal->name);
 
         text_color(ON_SURFACE_VARIANT);
         printf("%s", animal->species);
     }
+
+    if (owner_details->state == OwnerDetailsState_Details)
+        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 10, 3));
 }
 
 void draw(App* app) {

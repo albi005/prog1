@@ -12,9 +12,11 @@ typedef struct Animal {
     size_t id;
     size_t index;
     Owner *owner;
+    Treatments* treatments;
     char *name;
     char *species;
 } Animal;
+#define ANIMAL_PROPERTY_COUNT 2
 
 typedef struct Animals {
     size_t count;

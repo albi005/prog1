@@ -41,6 +41,7 @@
 
 void text_color(unsigned int rgb);
 void background_color(unsigned int rgb);
+bool is_continuation_byte(char c);
 size_t count_utf8_code_points(const char *s);
 Vec2i get_terminal_size();
 void draw_rect(Rect rect, unsigned int rgb);

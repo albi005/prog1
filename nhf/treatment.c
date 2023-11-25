@@ -1,50 +1,96 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "debugmalloc.h"
 #include "animal.h"
 #include "utils.h"
 #include "treatment.h"
 
-static void add_treatment(Treatments *treatments, Treatment treatment) {
+Treatments* new_treatments() {
+    Treatments *treatments = malloc(sizeof(Treatments));
+    treatments->file = NULL;
+    treatments->count = 0;
+    treatments->capacity = 0;
+    treatments->data = NULL;
+    return treatments;
+}
+
+void add_treatment(Treatments* treatments, Treatment* treatment) {
     treatments->count++;
     if (treatments->count > treatments->capacity) {
         if (treatments->capacity < 10)
             treatments->capacity = 10;
         else 
             treatments->capacity *= 2;
-        treatments->data = (Treatment*)realloc(treatments->data, treatments->capacity * sizeof(Treatment));
+        treatments->data = (Treatment**)realloc(treatments->data, treatments->capacity * sizeof(Treatment*));
     }
     treatments->data[treatments->count - 1] = treatment;
 }
 
+void remove_treatment(Treatments *treatments, Treatment *treatment) {
+    size_t index = treatments->count;
+    if (treatments->file != NULL) index = treatment->index;
+    else {
+        for (size_t i = 0; i < treatments->count; i++) {
+            if (treatments->data[i] == treatment)
+            {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    treatments->count--;
+    for (size_t i = index; i < treatments->count; i++) {
+        treatments->data[i] = treatments->data[i + 1];
+    }
+}
+
+Treatment* create_treatment(Treatments *treatments, Animal *animal, time_t date, bool was_rabies_vaccinated, char* description) {
+    Treatment *treatment = malloc(sizeof(Treatment));
+
+    if (treatments->count == 0)
+        treatment->id = 1;
+    else
+        treatment->id = treatments->data[treatments->count - 1]->id + 1;
+
+    treatment->animal = animal;
+    treatment->date = date;
+    treatment->was_rabies_vaccinated = was_rabies_vaccinated;
+    treatment->description = description;
+    add_treatment(treatments, treatment);
+    treatment->index = treatments->count - 1;
+    add_treatment(animal->treatments, treatment);
+    return treatment;
+}
+
+void delete_treatment(Treatment *treatment, Treatments *treatments) {
+    // TODO
+}
+
 Treatments *open_treatments(Animals *animals) {
+    Treatments *treatments = new_treatments();
+
     FILE *f = fopen("treatments", "r");
-
-    Treatments *treatments = malloc(sizeof(Treatments));
     treatments->file = f;
-    treatments->count = 0;
-    treatments->capacity = 0;
-    treatments->data = NULL;
-
     if (f == NULL) return treatments;
 
     while (1) {
-        Treatment treatment;
-
+        size_t id;
         size_t animal_id;
+        time_t date;
+        int was_rabies_vaccinated;
 
-        if (fscanf(f, "%zd ", &treatment.id) < 1)
+        if (fscanf(f, "%zd ", &id) < 1)
             break;
         fscanf(f, "%zd ", &animal_id);
-        fscanf(f, "%ld ", &treatment.date);
-
-        int was_rabies_vaccinated;
+        fscanf(f, "%ld ", &date);
         fscanf(f, "%d ", &was_rabies_vaccinated);
-        treatment.was_rabies_vaccinated = was_rabies_vaccinated;
-
-        treatment.description = read_line(f);
+        char* description = read_line(f);
 
         // https://en.wikipedia.org/wiki/Binary_search_algorithm#Procedure
+        Animal* animal = NULL;
         size_t l = 0;
         size_t r = animals->count - 1;
         while (l <= r) {
@@ -54,28 +100,27 @@ Treatments *open_treatments(Animals *animals) {
             else if (animals->data[m]->id > animal_id)
                 r = m - 1;
             else {
-                treatment.animal = animals->data[m];
+                animal = animals->data[m];
                 break;
             }
         }
         
-        if (treatment.animal == NULL) {
+        if (animal == NULL) {
             printf("Error: animal with id %zd not found!\n", animal_id);
             exit(1);
         }
 
-        add_treatment(treatments, treatment);
+        create_treatment(treatments, animal, date, was_rabies_vaccinated, description);
+
     }
 
     return treatments;
 }
 void close_treatments(Treatments *treatments) {
     for (int i = 0; i < treatments->count; i++) {
-        free(treatments->data[i].description);
+        free(treatments->data[i]->description);
     }
     free(treatments->data);
     free(treatments);
 }
 
-Treatment *create_treatment(Treatments *treatments, Animal *animal, char *name, char *species);
-void remove_treatment(Treatments *treatments, Treatment *treatment);

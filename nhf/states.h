@@ -21,7 +21,6 @@ typedef struct {
 typedef enum {
     AnimalDetailsState_Selecting,
     AnimalDetailsState_Editing,
-    AnimalDetailsState_Details
 } AnimalDetailsState;
 
 typedef struct {

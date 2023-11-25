@@ -50,6 +50,8 @@ bool handle_edit(char input, char** curr, char** old) {
         case KEY_BACKSPACE:
             if (len == 0)
                 return false;
+            while (is_continuation_byte((*curr)[len - 1]))
+                len--;
             len--;
             *curr = realloc(*curr, sizeof(char) * (len + 1));
             (*curr)[len] = '\0';
@@ -67,6 +69,41 @@ bool handle_edit(char input, char** curr, char** old) {
             return false;
         }
     }
+}
+
+bool handle_animal_details(char input, AnimalDetails* animal_details) {
+    Animal* animal = animal_details->animal;
+    switch (animal_details->state) {
+        case AnimalDetailsState_Selecting:
+            if (handle_list(input, &animal_details->selected_index, ANIMAL_PROPERTY_COUNT + 2))
+                return false;
+            if (input == KEY_ENTER) {
+                animal_details->state = AnimalDetailsState_Editing;
+                animal_details->old_value = NULL;
+                return false;
+            }
+            break;
+        case AnimalDetailsState_Editing:
+        {
+            char** value;
+            switch (animal_details->selected_index) {
+                case 0: value = &animal->name; break;
+                case 1: value = &animal->species; break;
+                default:
+                    value = &animal
+                        ->treatments
+                        ->data[animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 2]
+                        ->description;
+                    break;
+                            
+            }
+            bool finished = handle_edit(input, value, &animal_details->old_value);
+            if (finished)
+                animal_details->state = AnimalDetailsState_Selecting;
+            return false;
+        }
+    }
+    return is_quit(input);
 }
 
 // returns true when finished
@@ -108,7 +145,10 @@ bool handle_owner_details(char input, OwnerDetails* owner_details) {
             return false;
         }
         case OwnerDetailsState_Details:
-            break;
+            if (handle_animal_details(input, &owner_details->animal_details))
+                owner_details->state = OwnerDetailsState_Selecting;
+            return false;
+            
     }
 
     return is_quit(input);

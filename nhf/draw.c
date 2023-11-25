@@ -5,26 +5,29 @@
 #include "econio.h"
 #include "owner.h"
 #include "states.h"
+#include "sys/types.h"
 #include "treatment.h"
 #include "utils.h"
 #include <stdlib.h>
 
-void draw_background() {
-    background_color(SURFACE_CONTAINER_LOWEST);
-    econio_clrscr();
-}
+void draw_tabs(TabsState tabs_state, Rect bounds) {
+    const Color backdrop = SURFACE_CONTAINER_LOWEST;
+    const Color surface = SURFACE_CONTAINER;
 
-void draw_tabs(TabsState tabs_state) {
+    background_color(surface);
+    econio_clrscr();
+    draw_rect((Rect){0,0, bounds.w, 1}, backdrop);
+
     char* tabs_text[] = {"Oltások", "Tulajdonosok", "Állatok"};
     int x = 0;
     for (int i = 0; i < 3; i++) {
         econio_gotoxy(x, 0);
         if (i == tabs_state) {
             text_color(ON_SURFACE);
-            background_color(SURFACE_CONTAINER);
+            background_color(surface);
         } else {
             text_color(ON_SURFACE_VARIANT);
-            background_color(SURFACE_CONTAINER_LOWEST);
+            background_color(backdrop);
         }
         printf(" %s ", tabs_text[i]);
         x += count_utf8_code_points(tabs_text[i]) + 2;
@@ -87,26 +90,28 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
         }
     }
 
+    const Color surface = SURFACE_CONTAINER;
+
     for (int i = 0; i < os->count; i++) {
         size_t idx = vax_idx[i];
         Owner *o = os->data[idx];
         time_t oldest = oldest_vaccinations[idx];
         size_t days = days_since(oldest, current_time);
-        bool is_selected = selected_index == i;
+        bool selected = selected_index == i;
 
-        if (is_selected) {
-            draw_rect((Rect){0, i + 2, 120, 1}, SURFACE_VARIANT);
+        if (selected) {
+            draw_rect((Rect){0, i + 2, 120, 1}, ON_SURFACE);
         }
         else
-            background_color(SURFACE_CONTAINER);
+            background_color(surface);
 
         econio_gotoxy(2, i + 2);
         if (days > 365)
-            text_color(ON_ERROR_CONTAINER);
+            text_color(selected ? ON_ERROR : ERROR);
         else if (oldest == max_time)
-            text_color(ON_SURFACE_VARIANT);
+            text_color(selected ? surface : ON_SURFACE_VARIANT);
         else
-            text_color(ON_PRIMARY_CONTAINER);
+            text_color(selected ? ON_PRIMARY : PRIMARY);
         if (oldest == 0)
             printf("soha");
         else if (oldest == max_time)
@@ -115,7 +120,7 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
             printf("%zu napja", days);
 
         econio_gotoxy(14, i + 2);
-        text_color(ON_SURFACE);
+        text_color(selected ? surface : ON_SURFACE);
         printf("%s", o->name);
 
         econio_gotoxy(36, i + 2);
@@ -167,7 +172,6 @@ void draw_animals(Animals *as) {
     }
 }
 
-// set background before
 void draw_property(int x, int y, char* key, char* value, bool is_selected, bool editing, unsigned int surface) {
     econio_gotoxy(x, y);
     background_color(surface);
@@ -183,8 +187,8 @@ void draw_property(int x, int y, char* key, char* value, bool is_selected, bool 
             background_color(PRIMARY);
         }
         else {
-            text_color(ON_SURFACE);
-            background_color(SURFACE_VARIANT);
+            text_color(surface);
+            background_color(ON_SURFACE);
         }
     }
     else text_color(ON_SURFACE);
@@ -196,8 +200,9 @@ void draw_property(int x, int y, char* key, char* value, bool is_selected, bool 
 }
 
 void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
-    draw_rect(bounds, SURFACE_CONTAINER_HIGHEST);
-    background_color(SURFACE_CONTAINER_HIGHEST);
+    const Color surface = SURFACE_CONTAINER_HIGHEST;
+    draw_rect(bounds, surface);
+    background_color(surface);
     text_color(ON_SURFACE);
 
     int x = bounds.x + 4;
@@ -207,10 +212,10 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
     int selected_index = animal_details->selected_index;
     bool editing = animal_details->state == AnimalDetailsState_Editing;
 
-    draw_property(x, y += 1, "Név", animal->name, selected_index == 0, editing, SURFACE_CONTAINER_HIGHEST);
-    draw_property(x, y += 1, "Faj", animal->species, selected_index == 1, editing, SURFACE_CONTAINER_HIGHEST);
-    draw_property(x, y += 1, "Tulajdonos", animal->owner->name, false, editing, SURFACE_CONTAINER_HIGHEST);
-    draw_property(x, y += 1, "Cím", animal->owner->address, false, editing, SURFACE_CONTAINER_HIGHEST);
+    draw_property(x, y += 1, "Név", animal->name, selected_index == 0, editing, surface);
+    draw_property(x, y += 1, "Faj", animal->species, selected_index == 1, editing, surface);
+    draw_property(x, y += 1, "Tulajdonos", animal->owner->name, false, editing, surface);
+    draw_property(x, y += 1, "Cím", animal->owner->address, false, editing, surface);
 
     selected_index -= ANIMAL_PROPERTY_COUNT;
     y++;
@@ -221,26 +226,26 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
 
         bool selected = selected_index == i;
         if (selected)
-            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, SURFACE_VARIANT);
+            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, ON_SURFACE);
         else
-            background_color(SURFACE_CONTAINER_HIGHEST);
+            background_color(surface);
 
         econio_gotoxy(x, y);
-        text_color(ON_SURFACE);
+        text_color(selected ? SURFACE_CONTAINER_HIGHEST : ON_SURFACE_VARIANT);
         if (treatment->was_rabies_vaccinated)
             printf("💉 ");
         else
             printf("   ");
         printf("%d napja  ", days_since(treatment->date, current_time));
 
-        draw_property(x + 14, y, NULL, treatment->description, selected, editing, SURFACE_CONTAINER_HIGHEST);
+        draw_property(x + 14, y, NULL, treatment->description, selected, editing, surface);
     }
 }
 
 void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
-    draw_rect(bounds, SURFACE_CONTAINER_HIGH);
-    background_color(SURFACE_CONTAINER_HIGH);
-    text_color(ON_SURFACE);
+    const Color surface = SURFACE_CONTAINER_HIGH;
+    
+    draw_rect(bounds, surface);
 
     int x = bounds.x + 4;
     int y = bounds.y + 1;
@@ -249,9 +254,9 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
     int selected_index = owner_details->selected_index;
     bool editing = owner_details->state == OwnerDetailsState_Editing;
 
-    draw_property(x, y += 1, "Név", owner->name, selected_index == 0, editing, SURFACE_CONTAINER_HIGH);
-    draw_property(x, y += 1, "Cím", owner->address, selected_index == 1, editing, SURFACE_CONTAINER_HIGH);
-    draw_property(x, y += 1, "Elérhetőség", owner->contact, selected_index == 2, editing, SURFACE_CONTAINER_HIGH);
+    draw_property(x, y += 1, "Név", owner->name, selected_index == 0, editing, surface);
+    draw_property(x, y += 1, "Cím", owner->address, selected_index == 1, editing, surface);
+    draw_property(x, y += 1, "Elérhetőség", owner->contact, selected_index == 2, editing, surface);
 
     selected_index -= OWNER_PROPERTY_COUNT;
     y++;
@@ -261,42 +266,40 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
 
         bool selected = selected_index == i;
         if (selected)
-            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, SURFACE_VARIANT);
+            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, ON_SURFACE);
         else
-            background_color(SURFACE_CONTAINER_HIGH);
+            background_color(surface);
 
         econio_gotoxy(x, y);
-        text_color(ON_SURFACE);
+        text_color(selected ? surface : ON_SURFACE);
         printf("%s  ", animal->name);
 
-        text_color(ON_SURFACE_VARIANT);
+        text_color(selected ? SURFACE_CONTAINER_HIGHEST : ON_SURFACE_VARIANT);
         printf("%s", animal->species);
     }
 
     if (owner_details->state == OwnerDetailsState_Details)
-        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 6, 3));
+        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 4, 2));
 }
 
 void draw(App* app) {
     Rect screen_bounds = {0, 0, app->screen_size.x, app->screen_size.y};
-    draw_background();
-    draw_tabs(app->tabs.state);
+    draw_tabs(app->tabs.state, screen_bounds);
 
     Rect tab_bounds = {0, 1, screen_bounds.w, screen_bounds.h - 1};
-    draw_rect(tab_bounds, SURFACE_CONTAINER);
 
     switch (app->tabs.state) {
         case TabsState_Vax:
         {
             VaxTab vax_tab = app->tabs.vax_tab;
 
-            // selected owner is set here to save recalculation
+            // selected owner is set here to avoid recalculation
             app->tabs.vax_tab.owner_details.owner = draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab.selected_index);
 
             if (vax_tab.state == VaxTabState_Details) {
                 draw_owner_details(
                     &vax_tab.owner_details,
-                    add_margin(tab_bounds, 6, 3)
+                    add_margin(tab_bounds, 4, 2)
                 );
             }
             break;

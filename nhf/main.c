@@ -44,10 +44,11 @@ int main() {
     }
 
     // save data and clean up
-    econio_normalmode();
     close_treatments(app.treatments);
     close_animals(app.animals);
     close_owners(app.owners);
 
+    reset_colors();
+    econio_normalmode();
     printf("\n");
 }

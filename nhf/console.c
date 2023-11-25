@@ -21,6 +21,10 @@ void background_color(unsigned int rgb) {
     printf("\x1b[48;2;%d;%d;%dm", r, g, b);
 }
 
+void reset_colors() {
+    printf("\x1b[0m");
+}
+
 // https://en.wikipedia.org/wiki/UTF-8#Encoding
 bool is_continuation_byte(char c) {
     return (c & 0b11000000) == 0b10000000;

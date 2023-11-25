@@ -17,6 +17,37 @@ void add_owner(Owners *owners, Owner* owner) {
     owners->data[owners->count - 1] = owner;
 }
 
+// must be called using only the main owners list loaded from a file
+Owner *create_owner(Owners *owners, char *name, char *address, char *contact) {
+    Owner* owner = malloc(sizeof(Owner));
+
+    if (owners->count == 0)
+        owner->id = 1;
+    else
+        owner->id = owners->data[owners->count - 1]->id + 1;
+
+    owner->name = name;
+    owner->address = address;
+    owner->contact = contact;
+    owner->animals = new_animals();
+    add_owner(owners, owner);
+    owner->index = owners->count - 1;
+    return owner;
+}
+
+void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments) {
+    for (int i = 0; i < owner->animals->count; i++){
+        Animal *animal = owner->animals->data[i];
+        delete_animal(animal, animals, treatments);
+    }
+    free(owner->animals->data);
+    free(owner->animals);
+    free(owner->name);
+    free(owner->address);
+    free(owner->contact);
+    free(owner);
+}
+
 Owners *open_owners() {
     FILE *f = fopen("owners", "r");
 
@@ -58,33 +89,3 @@ void close_owners(Owners *owners) {
     free(owners);
 }
 
-// must be called using only the main owners list loaded from a file
-Owner *create_owner(Owners *owners, char *name, char *address, char *contact) {
-    Owner* owner = malloc(sizeof(Owner));
-
-    if (owners->count == 0)
-        owner->id = 1;
-    else
-        owner->id = owners->data[owners->count - 1]->id + 1;
-
-    owner->name = name;
-    owner->address = address;
-    owner->contact = contact;
-    owner->animals = new_animals();
-    add_owner(owners, owner);
-    owner->index = owners->count - 1;
-    return owner;
-}
-
-void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments) {
-    for (int i = 0; i < owner->animals->count; i++){
-        Animal *animal = owner->animals->data[i];
-        delete_animal(animal, animals, treatments);
-    }
-    free(owner->animals->data);
-    free(owner->animals);
-    free(owner->name);
-    free(owner->address);
-    free(owner->contact);
-    free(owner);
-}

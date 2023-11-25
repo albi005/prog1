@@ -75,7 +75,7 @@ bool handle_animal_details(char input, AnimalDetails* animal_details) {
     Animal* animal = animal_details->animal;
     switch (animal_details->state) {
         case AnimalDetailsState_Selecting:
-            if (handle_list(input, &animal_details->selected_index, ANIMAL_PROPERTY_COUNT + 2))
+            if (handle_list(input, &animal_details->selected_index, ANIMAL_PROPERTY_COUNT + animal->treatments->count))
                 return false;
             if (input == KEY_ENTER) {
                 animal_details->state = AnimalDetailsState_Editing;
@@ -90,11 +90,15 @@ bool handle_animal_details(char input, AnimalDetails* animal_details) {
                 case 0: value = &animal->name; break;
                 case 1: value = &animal->species; break;
                 default:
+                {
+                    size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT;
+                    index = animal->treatments->count - 1 - index; // reverse order
                     value = &animal
                         ->treatments
-                        ->data[animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 2]
+                        ->data[index]
                         ->description;
                     break;
+                }
                             
             }
             bool finished = handle_edit(input, value, &animal_details->old_value);
@@ -122,7 +126,8 @@ bool handle_owner_details(char input, OwnerDetails* owner_details) {
                     owner_details->state = OwnerDetailsState_Details;
                     owner_details->animal_details.state = AnimalDetailsState_Selecting;
                     owner_details->animal_details.selected_index = 0;
-                    owner_details->animal_details.animal = owner->animals->data[owner_details->selected_index - OWNER_PROPERTY_COUNT];
+                    size_t index = owner_details->selected_index - OWNER_PROPERTY_COUNT;
+                    owner_details->animal_details.animal = owner->animals->data[index];
                 }
                 return false;
             
@@ -156,13 +161,14 @@ bool handle_owner_details(char input, OwnerDetails* owner_details) {
 
 void handle_input(char input, App* app) {
     Tabs* tabs = &app->tabs;
-    switch (tabs->state) {
+    switch (tabs->state)
+    {
         case TabsState_Vax:
         {
             VaxTab* vax_tab = &tabs->vax_tab;
-            switch (vax_tab->state) {
+            switch (vax_tab->state)
+            {
                 case VaxTabState_Selecting:
-                {
                     if (input == KEY_ENTER) {
                         vax_tab->state = VaxTabState_Details;
                         vax_tab->owner_details.state = OwnerDetailsState_Selecting;
@@ -170,31 +176,64 @@ void handle_input(char input, App* app) {
                         return;
                     }
 
-                    handle_list(input, &vax_tab->selected_index, app->owners->count)
-                    || handle_tab(input, tabs);
+                    if (handle_list(input, &vax_tab->selected_index, app->owners->count))
+                        return;
 
                     break;
-                }
                 case VaxTabState_Details:
-                {
                     if (handle_owner_details(input, &vax_tab->owner_details))
                         vax_tab->state = VaxTabState_Selecting;
                     return;
-                }
             }
             break;
         }
         case TabsState_Owners:
         {
-            handle_tab(input, tabs);
+            OwnersTab* owners_tab = &tabs->owners_tab;
+            switch (owners_tab->state)
+            {
+                case OwnersTabState_Selecting:
+                    if (input == KEY_ENTER) {
+                        owners_tab->state = OwnersTabState_Details;
+                        owners_tab->owner_details.state = OwnerDetailsState_Selecting;
+                        owners_tab->owner_details.selected_index = 0;
+                        return;
+                    }
+                    if (handle_list(input, &owners_tab->selected_index, app->owners->count))
+                        return;
+                    break;
+                case OwnersTabState_Details:
+                    if (handle_owner_details(input, &owners_tab->owner_details))
+                        owners_tab->state = OwnersTabState_Selecting;
+                    return;
+            }
             break;
         }
         case TabsState_Animals:
         {
-            handle_tab(input, tabs);
+            AnimalsTab* animals_tab = &tabs->animals_tab;
+            switch (animals_tab->state)
+            {
+                case AnimalsTabState_Selecting:
+                    if (input == KEY_ENTER) {
+                        animals_tab->state = AnimalsTabState_Details;
+                        animals_tab->animal_details.state = AnimalDetailsState_Selecting;
+                        animals_tab->animal_details.selected_index = 0;
+                        return;
+                    }
+                    if (handle_list(input, &animals_tab->selected_index, app->animals->count))
+                        return;
+                    break;
+                case AnimalsTabState_Details:
+                    if (handle_animal_details(input, &animals_tab->animal_details))
+                        animals_tab->state = AnimalsTabState_Selecting;
+                    return;
+            }
             break;
         }
     }
+
+    handle_tab(input, tabs);
 
     if (is_quit(input))
         app->state = AppState_Exit;

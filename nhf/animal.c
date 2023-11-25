@@ -92,16 +92,6 @@ Animals* open_animals(Owners *owners) {
     return animals;
 }
 
-void close_animals(Animals *animals) {
-    for (int i = 0; i < animals->count; i++) {
-        free(animals->data[i]->name);
-        free(animals->data[i]->species);
-        free(animals->data[i]);
-    }
-    free(animals->data);
-    free(animals);
-}
-
 // must be called with only the main animals list loaded from a file
 Animal* create_animal(Animals *animals, Owner *owner, char *name, char *species) {
     Animal *animal = malloc(sizeof(Animal));
@@ -127,4 +117,16 @@ void delete_animal(Animal *animal, Animals *animals, Treatments *treatments) {
         delete_treatment(treatment, treatments);
     }
     // TODO
+}
+
+void close_animals(Animals *animals) {
+    for (int i = 0; i < animals->count; i++) {
+        free(animals->data[i]->treatments->data);
+        free(animals->data[i]->treatments);
+        free(animals->data[i]->name);
+        free(animals->data[i]->species);
+        free(animals->data[i]);
+    }
+    free(animals->data);
+    free(animals);
 }

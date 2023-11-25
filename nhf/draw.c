@@ -171,8 +171,11 @@ void draw_animals(Animals *as) {
 void draw_property(int x, int y, char* key, char* value, bool is_selected, bool editing, unsigned int surface) {
     econio_gotoxy(x, y);
     background_color(surface);
-    text_color(ON_SURFACE_VARIANT);
-    printf("%s: ", key);
+
+    if (key != NULL) {
+        text_color(ON_SURFACE_VARIANT);
+        printf("%s: ", key);
+    }
 
     if (is_selected) {
         if (editing) {
@@ -187,7 +190,7 @@ void draw_property(int x, int y, char* key, char* value, bool is_selected, bool 
     else text_color(ON_SURFACE);
 
     if (value == NULL || value[0] == 0)
-        printf("  ");
+        printf(" ");
     else
         printf("%s", value);
 }
@@ -214,7 +217,7 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
     time_t current_time = time(NULL);
     for (int i = 0; i < animal->treatments->count; i++) {
         y++;
-        Treatment *treatment = animal->treatments->data[i];
+        Treatment *treatment = animal->treatments->data[animal->treatments->count - i - 1];
 
         bool selected = selected_index == i;
         if (selected)
@@ -230,8 +233,7 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
             printf("   ");
         printf("%d napja  ", days_since(treatment->date, current_time));
 
-        text_color(ON_SURFACE_VARIANT);
-        printf("%s", treatment->description);
+        draw_property(x + 14, y, NULL, treatment->description, selected, editing, SURFACE_CONTAINER_HIGHEST);
     }
 }
 
@@ -272,7 +274,7 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
     }
 
     if (owner_details->state == OwnerDetailsState_Details)
-        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 10, 3));
+        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 6, 3));
 }
 
 void draw(App* app) {
@@ -294,7 +296,7 @@ void draw(App* app) {
             if (vax_tab.state == VaxTabState_Details) {
                 draw_owner_details(
                     &vax_tab.owner_details,
-                    add_margin(screen_bounds, 6, 3)
+                    add_margin(tab_bounds, 6, 3)
                 );
             }
             break;
@@ -306,4 +308,6 @@ void draw(App* app) {
             draw_animals(app->animals);
             break;
     }
+
+    econio_gotoxy(999, 999);
 }

@@ -43,11 +43,11 @@ int main() {
             break;
     }
 
-    // clean up
+    // save data and clean up
     econio_normalmode();
-    close_owners(app.owners);
-    close_animals(app.animals);
     close_treatments(app.treatments);
+    close_animals(app.animals);
+    close_owners(app.owners);
 
     printf("\n");
 }

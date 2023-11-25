@@ -119,6 +119,7 @@ Treatments *open_treatments(Animals *animals) {
 void close_treatments(Treatments *treatments) {
     for (int i = 0; i < treatments->count; i++) {
         free(treatments->data[i]->description);
+        free(treatments->data[i]);
     }
     free(treatments->data);
     free(treatments);

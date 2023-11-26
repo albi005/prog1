@@ -186,16 +186,14 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
         draw_animal_details(&owner_details->animal_details, add_margin(bounds, 4, 2));
 }
 
-// returns the selected owner
-Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_index) {
-    if (os->count == 0)
-        return NULL;
+void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments, VaxTab* vax_tab) {
+    if (owners->count == 0) return;
 
     // animal id -> last vaccination
-    time_t *last_vaccinations = malloc(as->count * sizeof(time_t));
-    for (int i = 0; i < as->count; i++) last_vaccinations[i] = 0;
-    for (int i = 0; i < ts->count; i++) {
-        Treatment* t = ts->data[i];
+    time_t *last_vaccinations = malloc(animals->count * sizeof(time_t));
+    for (int i = 0; i < animals->count; i++) last_vaccinations[i] = 0;
+    for (int i = 0; i < treatments->count; i++) {
+        Treatment* t = treatments->data[i];
         if (!t->was_rabies_vaccinated) continue;
 
         Animal *animal = t->animal;
@@ -205,12 +203,12 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
     }
 
     // owner id -> oldest last vaccination (priority)
-    time_t *oldest_vaccinations = (time_t*)malloc(os->count * sizeof(time_t));
+    time_t *oldest_vaccinations = (time_t*)malloc(owners->count * sizeof(time_t));
     time_t current_time = time(NULL);
     time_t max_time = current_time + 1; // if the redraw was triggered by a new treatment, its date might equal the current time
-    for (int i = 0; i < os->count; i++) oldest_vaccinations[i] = max_time;
-    for (int animal_index = 0; animal_index < as->count; animal_index++) {
-        Animal *animal = as->data[animal_index];
+    for (int i = 0; i < owners->count; i++) oldest_vaccinations[i] = max_time;
+    for (int animal_index = 0; animal_index < animals->count; animal_index++) {
+        Animal *animal = animals->data[animal_index];
         Owner *owner = animal->owner;
         size_t owner_index = owner->index;
         time_t oldest_vaccination = oldest_vaccinations[owner_index];
@@ -221,10 +219,10 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
 
     // bubble sort owners based on oldest vaccination.
     // first owner should have the lowest value.
-    size_t *vax_idx = (size_t*)malloc(os->count * sizeof(size_t));
-    for (int i = 0; i < os->count; i++) vax_idx[i] = i;
-    for (int i = 0; i < os->count - 1; i++) {
-        for (int j = 0; j < os->count - i - 1; j++) {
+    size_t *vax_idx = (size_t*)malloc(owners->count * sizeof(size_t));
+    for (int i = 0; i < owners->count; i++) vax_idx[i] = i;
+    for (int i = 0; i < owners->count - 1; i++) {
+        for (int j = 0; j < owners->count - i - 1; j++) {
             time_t a = oldest_vaccinations[vax_idx[j]];
             time_t b = oldest_vaccinations[vax_idx[j + 1]];
             if (a > b) {
@@ -236,14 +234,26 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
     }
 
     const Color surface = SURFACE_CONTAINER;
-    size_t max_name_length = get_max_name_length(os);
+    size_t max_name_length = get_max_name_length(owners);
+    bool is_selecting = vax_tab->state == VaxTabState_Selecting;
 
-    for (int i = 0; i < os->count; i++) {
+    for (int i = 0; i < owners->count; i++) {
         size_t idx = vax_idx[i];
-        Owner *o = os->data[idx];
+        Owner *o = owners->data[idx];
         time_t oldest = oldest_vaccinations[idx];
         size_t days = days_since(oldest, current_time);
-        bool selected = selected_index == i;
+
+        bool selected;
+        if (is_selecting) {
+            selected = vax_tab->selected_index == i;
+            if (selected)
+                vax_tab->owner_details.owner = o;
+        }
+        else {
+            selected = vax_tab->owner_details.owner == o;
+            if (selected)
+                vax_tab->selected_index = i;
+        }
 
         if (selected) {
             draw_rect((Rect){0, i + 2, 120, 1}, ON_SURFACE);
@@ -280,13 +290,9 @@ Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_i
         printf("%s", o->contact);
     }
 
-    Owner *selected_owner = os->data[vax_idx[selected_index]];
-
     free(last_vaccinations);
     free(oldest_vaccinations);
     free(vax_idx);
-
-    return selected_owner;
 }
 
 void draw_owners(Owners *os, OwnersTab* owners_tab, Rect bounds) {
@@ -404,8 +410,7 @@ void draw(App* app) {
         {
             VaxTab* vax_tab = &app->tabs.vax_tab;
 
-            // selected owner is set here to avoid recalculation
-            app->tabs.vax_tab.owner_details.owner = draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab->selected_index);
+            draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab);
 
             if (vax_tab->state == VaxTabState_Details) {
                 draw_owner_details(

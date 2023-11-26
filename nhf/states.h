@@ -41,7 +41,7 @@ typedef enum {
 typedef struct {
     OwnerDetailsState state;
     Owner* owner; // set when drawing
-    size_t selected_index;
+    size_t selected_index; // set when drawing from owner, when owners list is not focused
     char* old_value;
     AnimalDetails animal_details;
 } OwnerDetails;

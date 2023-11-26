@@ -230,6 +230,7 @@ void handle_input(char input, App* app) {
         case TabsState_Vax:
         {
             VaxTab* vax_tab = &tabs->vax_tab;
+            if (app->owners->count == 0) break;
             switch (vax_tab->state)
             {
                 case VaxTabState_Selecting:

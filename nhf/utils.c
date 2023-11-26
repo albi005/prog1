@@ -36,6 +36,12 @@ Rect add_margin(Rect rect, int horizontal, int vertical) {
     return rect;
 }
 
+char* new_empty_string() {
+    char* s = malloc(sizeof(char));
+    s[0] = (long)NULL;
+    return s;
+}
+
 char* copy_string(char* s) {
     if (s == NULL)
         return NULL;

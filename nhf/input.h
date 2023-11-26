@@ -6,6 +6,7 @@
 #include "animal.h"
 #include "treatment.h"
 
+App init();
 void handle_input(char input, App* app);
 
 #endif // INPUT_H

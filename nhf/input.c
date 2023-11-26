@@ -10,6 +10,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+App init() {
+    App app;
+    app.state = AppState_Tabs;
+    app.tabs.state = TabsState_Vax;
+    app.tabs.vax_tab.state = VaxTabState_Selecting;
+    app.tabs.vax_tab.selected_index = 0;
+    app.tabs.owners_tab.state = OwnersTabState_Selecting;
+    app.tabs.owners_tab.selected_index = 0;
+    app.tabs.owners_tab.search_term = copy_string("");
+    app.tabs.owners_tab.previous_search_term = NULL;
+    app.tabs.animals_tab.state = AnimalsTabState_Selecting;
+    app.tabs.animals_tab.selected_index = 0;
+    app.tabs.animals_tab.search_term = copy_string("");
+    app.tabs.animals_tab.previous_search_term = NULL;
+    return app;
+}
+
 bool is_quit(char input) {
     return input == KEY_ESCAPE || input == 'q';
 }
@@ -46,6 +63,7 @@ bool handle_edit(char input, char** curr, char** old) {
     switch (input) {
         case KEY_ENTER:
             free(*old);
+            *old = NULL;
             return true;
         case KEY_BACKSPACE:
             if (len == 0)
@@ -59,6 +77,7 @@ bool handle_edit(char input, char** curr, char** old) {
         case KEY_ESCAPE:
             free(*curr);
             *curr = *old;
+            *old = NULL;
             return true;
         default:
         {
@@ -194,16 +213,37 @@ void handle_input(char input, App* app) {
             {
                 case OwnersTabState_Selecting:
                     if (input == KEY_ENTER) {
+                        if (owners_tab->selected_index == 0) {
+                            owners_tab->state = OwnersTabState_Searching;
+                            return;
+                        }
+
+                        // add new owner
+                        if (owners_tab->selected_index == 1) {
+                            // reset search
+                            free(owners_tab->search_term);
+                            owners_tab->search_term = copy_string("");
+                            free(owners_tab->previous_search_term);
+                            owners_tab->previous_search_term = NULL;
+
+                            Owner* new_owner = create_owner(app->owners, new_empty_string(), new_empty_string(), new_empty_string());
+                            owners_tab->selected_index = new_owner->index + 2;
+                        }
                         owners_tab->state = OwnersTabState_Details;
                         owners_tab->owner_details.state = OwnerDetailsState_Selecting;
                         owners_tab->owner_details.selected_index = 0;
+
                         return;
                     }
-                    if (handle_list(input, &owners_tab->selected_index, app->owners->count))
+                    if (handle_list(input, &owners_tab->selected_index, app->tabs.owners_tab.visible_count + 2))
                         return;
                     break;
                 case OwnersTabState_Details:
                     if (handle_owner_details(input, &owners_tab->owner_details))
+                        owners_tab->state = OwnersTabState_Selecting;
+                    return;
+                case OwnersTabState_Searching:
+                    if (handle_edit(input, &owners_tab->search_term, &owners_tab->previous_search_term))
                         owners_tab->state = OwnersTabState_Selecting;
                     return;
             }
@@ -216,18 +256,29 @@ void handle_input(char input, App* app) {
             {
                 case AnimalsTabState_Selecting:
                     if (input == KEY_ENTER) {
+                        if (animals_tab->selected_index == 0) {
+                            animals_tab->state = AnimalsTabState_Searching;
+                            return;
+                        }
+
                         animals_tab->state = AnimalsTabState_Details;
                         animals_tab->animal_details.state = AnimalDetailsState_Selecting;
                         animals_tab->animal_details.selected_index = 0;
+
                         return;
                     }
-                    if (handle_list(input, &animals_tab->selected_index, app->animals->count))
+                    if (handle_list(input, &animals_tab->selected_index, app->tabs.animals_tab.visible_count + 1))
                         return;
                     break;
                 case AnimalsTabState_Details:
                     if (handle_animal_details(input, &animals_tab->animal_details))
                         animals_tab->state = AnimalsTabState_Selecting;
                     return;
+                case AnimalsTabState_Searching:
+                    if (handle_edit(input, &animals_tab->search_term, &animals_tab->previous_search_term))
+                        animals_tab->state = AnimalsTabState_Selecting;
+                    return;
+                            
             }
             break;
         }

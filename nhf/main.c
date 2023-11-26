@@ -17,11 +17,7 @@
 
 int main() {
     // init state
-    App app;
-    app.state = AppState_Tabs;
-    app.tabs.state = TabsState_Vax;
-    app.tabs.vax_tab.state = VaxTabState_Selecting;
-    app.tabs.vax_tab.selected_index = 0;
+    App app = init();
 
     // load data
     app.owners = open_owners();
@@ -47,6 +43,9 @@ int main() {
     close_treatments(app.treatments);
     close_animals(app.animals);
     close_owners(app.owners);
+
+    free(app.tabs.owners_tab.search_term);
+    free(app.tabs.animals_tab.search_term);
 
     reset_colors();
     econio_normalmode();

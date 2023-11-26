@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
     TreatmentDetailsState state;
-    Treatment* treatment;
+    Treatment* treatment; // set when drawing
     int selected_index;
     char* old_value;
 } TreatmentDetails;
@@ -25,7 +25,7 @@ typedef enum {
 
 typedef struct {
     AnimalDetailsState state;
-    Animal* animal;
+    Animal* animal; // set when drawing
     int selected_index;
     char* old_value;
     TreatmentDetails treatment_details;
@@ -39,7 +39,7 @@ typedef enum {
 
 typedef struct {
     OwnerDetailsState state;
-    Owner* owner;
+    Owner* owner; // set when drawing
     int selected_index;
     char* old_value;
     AnimalDetails animal_details;
@@ -58,23 +58,31 @@ typedef struct {
 
 typedef enum {
     OwnersTabState_Selecting,
-    OwnersTabState_Details
+    OwnersTabState_Details,
+    OwnersTabState_Searching
 } OwnersTabState;
 
 typedef struct {
     OwnersTabState state;
     int selected_index;
+    char* search_term;
+    char* previous_search_term;
+    size_t visible_count; // set when drawing
     OwnerDetails owner_details;
 } OwnersTab;
 
 typedef enum {
     AnimalsTabState_Selecting,
-    AnimalsTabState_Details
+    AnimalsTabState_Details,
+    AnimalsTabState_Searching
 } AnimalsTabState;
 
 typedef struct {
     AnimalsTabState state;
     int selected_index;
+    char* search_term;
+    char* previous_search_term;
+    size_t visible_count; // set when drawing
     AnimalDetails animal_details;
 } AnimalsTab;
 

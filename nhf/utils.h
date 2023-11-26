@@ -14,6 +14,7 @@ typedef struct {
 
 char *read_line(FILE *f);
 Rect add_margin(Rect rect, int horizontal, int vertical);
+char* new_empty_string();
 char* copy_string(char* s);
 int days_since(time_t date, time_t now);
 

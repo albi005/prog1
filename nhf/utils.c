@@ -54,3 +54,8 @@ char* copy_string(char* s) {
 int days_since(time_t date, time_t now) {
     return (now - date) / (60 * 60 * 24);
 }
+
+void fit(size_t* index, size_t count) {
+    if (*index >= count)
+        *index = count - 1;
+}

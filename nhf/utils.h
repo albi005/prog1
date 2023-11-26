@@ -18,4 +18,7 @@ char* new_empty_string();
 char* copy_string(char* s);
 int days_since(time_t date, time_t now);
 
+// ensures index is less than count
+void fit(size_t* index, size_t count);
+
 #endif

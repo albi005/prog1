@@ -39,7 +39,7 @@ bool handle_tab(char input, Tabs* tabs) {
     return false;
 }
 
-bool handle_list(char input, int* selected_index, int count) {
+bool handle_list(char input, size_t* selected_index, int count) {
     switch (input) {
         case KEY_DOWN:
         case 'j':
@@ -90,8 +90,9 @@ bool handle_edit(char input, char** curr, char** old) {
     }
 }
 
-// returns true when finished
-bool handle_animal_details(char input, AnimalDetails* animal_details, Treatments* treatments) {
+// Returns true when finished.
+// After calling, make sure selected_index is less than the animal count!
+bool handle_animal_details(char input, AnimalDetails* animal_details, Animals* animals, Treatments* treatments) {
     Animal* animal = animal_details->animal;
     switch (animal_details->state) {
         case AnimalDetailsState_Selecting:
@@ -115,6 +116,25 @@ bool handle_animal_details(char input, AnimalDetails* animal_details, Treatments
                 index = animal->treatments->count - 1 - index; // reverse order
                 animal->treatments->data[index]->was_rabies_vaccinated = !animal->treatments->data[index]->was_rabies_vaccinated;
             }
+
+            if (input == 'D') {
+                // delete animal
+                if (animal_details->selected_index < ANIMAL_PROPERTY_COUNT) {
+                    delete_animal(animal, animals, treatments);
+                    return true;
+                }
+
+                if (animal_details->selected_index == ANIMAL_PROPERTY_COUNT)
+                    return false;
+                            
+                // delete treatment
+                size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 1;
+                index = animal->treatments->count - 1 - index; // reverse order
+                delete_treatment(animal->treatments->data[index], treatments);
+                fit(&animal_details->selected_index, ANIMAL_PROPERTY_COUNT + 1 + animal->treatments->count);
+                return false;
+            }
+
             break;
         case AnimalDetailsState_Editing:
         {
@@ -143,13 +163,15 @@ bool handle_animal_details(char input, AnimalDetails* animal_details, Treatments
     return is_quit(input);
 }
 
-// returns true when finished
-bool handle_owner_details(char input, OwnerDetails* owner_details, Animals* animals, Treatments* treatments) {
+// Returns true when finished.
+// After calling, make sure selected_index is less than the owner count!
+bool handle_owner_details(char input, OwnerDetails* owner_details, Owners* owners, Animals* animals, Treatments* treatments) {
     Owner* owner = owner_details->owner;
     switch (owner_details->state) {
         case OwnerDetailsState_Selecting:
             if (handle_list(input, &owner_details->selected_index, OWNER_PROPERTY_COUNT + 1 + owner->animals->count))
                 return false;
+
             if (input == KEY_ENTER) {
                 if (owner_details->selected_index < OWNER_PROPERTY_COUNT) {
                     owner_details->state = OwnerDetailsState_Editing;
@@ -168,6 +190,13 @@ bool handle_owner_details(char input, OwnerDetails* owner_details, Animals* anim
 
                 return false;
             }
+
+            // delete owner
+            if (input == 'D' && owner_details->selected_index < OWNER_PROPERTY_COUNT) {
+                delete_owner(owner_details->owner, owners, animals, treatments);
+                return true;
+            }
+
             break;
         case OwnerDetailsState_Editing:
         {
@@ -186,10 +215,11 @@ bool handle_owner_details(char input, OwnerDetails* owner_details, Animals* anim
             return false;
         }
         case OwnerDetailsState_Details:
-            if (handle_animal_details(input, &owner_details->animal_details, treatments))
+            if (handle_animal_details(input, &owner_details->animal_details, animals, treatments)) {
                 owner_details->state = OwnerDetailsState_Selecting;
+                fit(&owner_details->selected_index, OWNER_PROPERTY_COUNT + 1 + owner->animals->count);
+            }
             return false;
-            
     }
 
     return is_quit(input);
@@ -217,8 +247,10 @@ void handle_input(char input, App* app) {
 
                     break;
                 case VaxTabState_Details:
-                    if (handle_owner_details(input, &vax_tab->owner_details, app->animals, app->treatments))
+                    if (handle_owner_details(input, &vax_tab->owner_details, app->owners, app->animals, app->treatments)) {
                         vax_tab->state = VaxTabState_Selecting;
+                        fit(&vax_tab->selected_index, app->owners->count);
+                    }
                     return;
             }
             break;
@@ -256,8 +288,10 @@ void handle_input(char input, App* app) {
                         return;
                     break;
                 case OwnersTabState_Details:
-                    if (handle_owner_details(input, &owners_tab->owner_details, app->animals, app->treatments))
+                    if (handle_owner_details(input, &owners_tab->owner_details, app->owners, app->animals, app->treatments)) {
                         owners_tab->state = OwnersTabState_Selecting;
+                        fit(&owners_tab->selected_index, owners_tab->visible_count + 2);
+                    }
                     return;
                 case OwnersTabState_Searching:
                     if (handle_edit(input, &owners_tab->search_term, &owners_tab->previous_search_term))
@@ -288,8 +322,10 @@ void handle_input(char input, App* app) {
                         return;
                     break;
                 case AnimalsTabState_Details:
-                    if (handle_animal_details(input, &animals_tab->animal_details, app->treatments))
+                    if (handle_animal_details(input, &animals_tab->animal_details, app->animals, app->treatments)) {
                         animals_tab->state = AnimalsTabState_Selecting;
+                        fit(&animals_tab->selected_index, animals_tab->visible_count + 1);
+                    }
                     return;
                 case AnimalsTabState_Searching:
                     if (handle_edit(input, &animals_tab->search_term, &animals_tab->previous_search_term))

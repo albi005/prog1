@@ -41,16 +41,30 @@ void remove_animal(Animals *animals, Animal *animal) {
         }
     }
 
+    if (index == animals->count) {
+        printf("Error: animal not found!\n");
+        exit(1);
+    }
+
     animals->count--;
     for (size_t i = index; i < animals->count; i++) {
         animals->data[i] = animals->data[i + 1];
+
+        if (animals->file != NULL)
+            animals->data[i]->index = i;
     }
 }
 
 Animals* open_animals(Owners *owners) {
     FILE *f = fopen("animals", "r");
 
+    if (f == NULL) {
+        printf("Error opening animals file!\n");
+        exit(1);
+    }
+
     Animals *animals = new_animals();
+    animals->file = f;
 
     if (f == NULL)
         return NULL;
@@ -111,22 +125,29 @@ Animal* create_animal(Animals *animals, Owner *owner, char *name, char *species)
     return animal;
 }
 
+void free_animal(Animal *animal) {
+    free(animal->treatments->data);
+    free(animal->treatments);
+    free(animal->name);
+    free(animal->species);
+    free(animal);
+}
+
 void delete_animal(Animal *animal, Animals *animals, Treatments *treatments) {
-    for (int i = 0; i < animal->treatments->count; i++) {
-        Treatment* treatment = animal->treatments->data[i];
+    remove_animal(animals, animal);
+    remove_animal(animal->owner->animals, animal);
+
+    for (int i = animal->treatments->count - 1; i >= 0; i--) {
+        Treatment *treatment = animal->treatments->data[i];
         delete_treatment(treatment, treatments);
     }
-    // TODO
+
+    free_animal(animal);
 }
 
 void close_animals(Animals *animals) {
-    for (int i = 0; i < animals->count; i++) {
-        free(animals->data[i]->treatments->data);
-        free(animals->data[i]->treatments);
-        free(animals->data[i]->name);
-        free(animals->data[i]->species);
-        free(animals->data[i]);
-    }
+    for (int i = 0; i < animals->count; i++)
+        free_animal(animals->data[i]);
     free(animals->data);
     free(animals);
 }

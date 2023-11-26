@@ -5,6 +5,7 @@
 #include "owner.h"
 #include "treatment.h"
 #include "utils.h"
+#include <stddef.h>
 
 typedef enum {
     TreatmentDetailsState_Selecting,
@@ -26,7 +27,7 @@ typedef enum {
 typedef struct {
     AnimalDetailsState state;
     Animal* animal; // set when drawing
-    int selected_index;
+    size_t selected_index;
     char* old_value;
     TreatmentDetails treatment_details;
 } AnimalDetails;
@@ -40,7 +41,7 @@ typedef enum {
 typedef struct {
     OwnerDetailsState state;
     Owner* owner; // set when drawing
-    int selected_index;
+    size_t selected_index;
     char* old_value;
     AnimalDetails animal_details;
 } OwnerDetails;
@@ -52,7 +53,7 @@ typedef enum {
 
 typedef struct {
     VaxTabState state;
-    int selected_index;
+    size_t selected_index;
     OwnerDetails owner_details;
 } VaxTab;
 
@@ -64,7 +65,7 @@ typedef enum {
 
 typedef struct {
     OwnersTabState state;
-    int selected_index;
+    size_t selected_index;
     char* search_term;
     char* previous_search_term;
     size_t visible_count; // set when drawing
@@ -79,7 +80,7 @@ typedef enum {
 
 typedef struct {
     AnimalsTabState state;
-    int selected_index;
+    size_t selected_index;
     char* search_term;
     char* previous_search_term;
     size_t visible_count; // set when drawing

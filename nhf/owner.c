@@ -5,6 +5,8 @@
 #include "owner.h"
 #include "utils.h"
 
+// TODO: reorder
+
 void add_owner(Owners *owners, Owner* owner) {
     owners->count++;
     if (owners->count > owners->capacity) {
@@ -15,6 +17,33 @@ void add_owner(Owners *owners, Owner* owner) {
         owners->data = (Owner**)realloc(owners->data, owners->capacity * sizeof(Owner*));
     }
     owners->data[owners->count - 1] = owner;
+}
+
+void remove_owner(Owners *owners, Owner *owner) {
+    size_t index = owners->count;
+    if (owners->file != NULL) index = owner->index;
+    else {
+        for (size_t i = 0; i < owners->count; i++) {
+            if (owners->data[i] == owner)
+            {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    if (index == owners->count) {
+        printf("Error: owner not found!\n");
+        exit(1);
+    }
+
+    owners->count--;
+    for (size_t i = index; i < owners->count; i++) {
+        owners->data[i] = owners->data[i + 1];
+
+        if (owners->file != NULL)
+            owners->data[i]->index = i;
+    }
 }
 
 // must be called using only the main owners list loaded from a file
@@ -35,17 +64,23 @@ Owner *create_owner(Owners *owners, char *name, char *address, char *contact) {
     return owner;
 }
 
-void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments) {
-    for (int i = 0; i < owner->animals->count; i++){
-        Animal *animal = owner->animals->data[i];
-        delete_animal(animal, animals, treatments);
-    }
+void free_owner(Owner *owner) {
     free(owner->animals->data);
     free(owner->animals);
     free(owner->name);
     free(owner->address);
     free(owner->contact);
     free(owner);
+}
+
+void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments) {
+    remove_owner(owners, owner);
+    for (int i = owner->animals->count - 1; i >= 0; i--) {
+        Animal *animal = owner->animals->data[i];
+        delete_animal(animal, animals, treatments);
+    }
+
+    free_owner(owner);
 }
 
 Owners *open_owners() {

@@ -188,6 +188,9 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
 
 // returns the selected owner
 Owner* draw_vaccinations(Owners *os, Animals *as, Treatments *ts, int selected_index) {
+    if (os->count == 0)
+        return NULL;
+
     // animal id -> last vaccination
     time_t *last_vaccinations = malloc(as->count * sizeof(time_t));
     for (int i = 0; i < as->count; i++) last_vaccinations[i] = 0;

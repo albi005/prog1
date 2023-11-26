@@ -44,6 +44,9 @@ void remove_treatment(Treatments *treatments, Treatment *treatment) {
     treatments->count--;
     for (size_t i = index; i < treatments->count; i++) {
         treatments->data[i] = treatments->data[i + 1];
+
+        if (treatments->file != NULL)
+            treatments->data[i]->index = i;
     }
 }
 
@@ -65,16 +68,28 @@ Treatment* create_treatment(Treatments *treatments, Animal *animal, time_t date,
     return treatment;
 }
 
+void free_treatment(Treatment *treatment) {
+    free(treatment->description);
+    free(treatment);
+}
+
 void delete_treatment(Treatment *treatment, Treatments *treatments) {
-    // TODO
+    remove_treatment(treatments, treatment);
+    remove_treatment(treatment->animal->treatments, treatment);
+
+    free_treatment(treatment);
 }
 
 Treatments *open_treatments(Animals *animals) {
-    Treatments *treatments = new_treatments();
-
     FILE *f = fopen("treatments", "r");
+
+    if (f == NULL) {
+        printf("Error opening treatments file!\n");
+        exit(1);
+    }
+
+    Treatments *treatments = new_treatments();
     treatments->file = f;
-    if (f == NULL) return treatments;
 
     while (1) {
         size_t id;
@@ -117,10 +132,8 @@ Treatments *open_treatments(Animals *animals) {
     return treatments;
 }
 void close_treatments(Treatments *treatments) {
-    for (int i = 0; i < treatments->count; i++) {
-        free(treatments->data[i]->description);
-        free(treatments->data[i]);
-    }
+    for (int i = 0; i < treatments->count; i++)
+        free_treatment(treatments->data[i]);
     free(treatments->data);
     free(treatments);
 }

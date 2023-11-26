@@ -67,10 +67,12 @@ Animals* open_animals(Owners *owners) {
     while (1) {
         size_t id;
 
-        if (fscanf(f, "%zd ", &id) < 1)
+        if (fscanf(f, "%zd", &id) < 1)
             break;
+        getc(f); // newline
         size_t owner_id;
-        fscanf(f, "%zd ", &owner_id);
+        fscanf(f, "%zd", &owner_id);
+        getc(f); // newline
         char* name = read_line(f);
         char* species = read_line(f);
 

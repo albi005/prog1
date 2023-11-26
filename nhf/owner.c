@@ -94,8 +94,9 @@ Owners *open_owners() {
 
     while (1) {
         size_t id;
-        if (fscanf(f, "%zd ", &id) < 1)
+        if (fscanf(f, "%zd", &id) < 1)
             break;
+        getc(f); // newline
         char* name = read_line(f);
         char* address = read_line(f);
         char* contact = read_line(f);

@@ -92,11 +92,12 @@ Treatments *open_treatments(Animals *animals) {
         time_t date;
         int was_rabies_vaccinated;
 
-        if (fscanf(f, "%zd ", &id) < 1)
+        if (fscanf(f, "%zd\n", &id) < 1)
             break;
-        fscanf(f, "%zd ", &animal_id);
-        fscanf(f, "%ld ", &date);
-        fscanf(f, "%d ", &was_rabies_vaccinated);
+        fscanf(f, "%zd\n", &animal_id);
+        fscanf(f, "%ld\n", &date);
+        fscanf(f, "%d", &was_rabies_vaccinated);
+        getc(f); // newline
         char* description = read_line(f);
 
         // https://en.wikipedia.org/wiki/Binary_search_algorithm#Procedure

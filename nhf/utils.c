@@ -5,8 +5,22 @@
 #include "debugmalloc.h"
 #include "utils.h"
 
+Rect add_margin(Rect rect, int horizontal, int vertical) {
+    rect.x += horizontal;
+    rect.y += vertical;
+    rect.w -= horizontal * 2;
+    rect.h -= vertical * 2;
+    return rect;
+}
+
+char* new_empty_string() {
+    char* s = malloc(sizeof(char));
+    s[0] = (long)NULL;
+    return s;
+}
+
 char *read_line(FILE *f) {
-    char *s = NULL;
+    char *s = new_empty_string();
     size_t len = 0; //without null
     size_t cap = 0; //without null
     while (1) {
@@ -26,20 +40,6 @@ char *read_line(FILE *f) {
         s[len - 1] = c;
         s[len] = (long)NULL;
     }
-}
-
-Rect add_margin(Rect rect, int horizontal, int vertical) {
-    rect.x += horizontal;
-    rect.y += vertical;
-    rect.w -= horizontal * 2;
-    rect.h -= vertical * 2;
-    return rect;
-}
-
-char* new_empty_string() {
-    char* s = malloc(sizeof(char));
-    s[0] = (long)NULL;
-    return s;
 }
 
 char* copy_string(char* s) {

@@ -3,6 +3,7 @@
 
 #include "states.h"
 
+// Draws the current state to the terminal
 void draw(App* app);
 
 #endif // DRAW_H

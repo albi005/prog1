@@ -41,13 +41,26 @@ typedef uint32_t Color;
 #define OUTLINE 0x91909A
 #define OUTLINE_VARIANT 0x46464F
 
+// Set console text color
 void text_color(unsigned int rgb);
+
+// Set console background color
 void background_color(unsigned int rgb);
+
+// Reset console colors to default
 void reset_colors();
+
+// Decides whether c is a UTF-8 continuation byte:
+// https://en.wikipedia.org/wiki/UTF-8#Encoding
 bool is_continuation_byte(char c);
+
+// Counts the number of UTF-8 code points in a string
 size_t count_utf8_code_points(const char *s);
+
+// Gets the size of the terminal window
 Vec2i get_terminal_size();
+
+// Draws a rectangle with the given color in the same format as the color constants above
 void draw_rect(Rect rect, unsigned int rgb);
-bool confirm(const char *message);
 
 #endif // CONSOLE_H

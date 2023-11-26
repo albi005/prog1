@@ -25,12 +25,11 @@ void reset_colors() {
     printf("\x1b[0m");
 }
 
-// https://en.wikipedia.org/wiki/UTF-8#Encoding
 bool is_continuation_byte(char c) {
     return (c & 0b11000000) == 0b10000000;
 }
 
-// https://stackoverflow.com/a/32936928
+// Based on https://stackoverflow.com/a/32936928
 size_t count_utf8_code_points(const char *s) {
     size_t count = 0;
     while (*s)
@@ -57,8 +56,4 @@ void draw_rect(Rect rect, unsigned int rgb) {
             printf(" ");
         }
     }
-}
-
-bool confirm(const char *message) {
-    abort(); // TODO
 }

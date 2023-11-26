@@ -90,16 +90,30 @@ bool handle_edit(char input, char** curr, char** old) {
     }
 }
 
-bool handle_animal_details(char input, AnimalDetails* animal_details) {
+// returns true when finished
+bool handle_animal_details(char input, AnimalDetails* animal_details, Treatments* treatments) {
     Animal* animal = animal_details->animal;
     switch (animal_details->state) {
         case AnimalDetailsState_Selecting:
-            if (handle_list(input, &animal_details->selected_index, ANIMAL_PROPERTY_COUNT + animal->treatments->count))
+            if (handle_list(input, &animal_details->selected_index, ANIMAL_PROPERTY_COUNT + 1 + animal->treatments->count))
                 return false;
+
             if (input == KEY_ENTER) {
+                // add new treatment
+                if (animal_details->selected_index == ANIMAL_PROPERTY_COUNT) {
+                    create_treatment(treatments, animal, time(NULL), false, new_empty_string());
+                    animal_details->selected_index = ANIMAL_PROPERTY_COUNT + 1;
+                }
                 animal_details->state = AnimalDetailsState_Editing;
                 animal_details->old_value = NULL;
                 return false;
+            }
+
+            // toggle vaccination
+            if (input == ' ' && animal_details->selected_index > ANIMAL_PROPERTY_COUNT) {
+                size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 1;
+                index = animal->treatments->count - 1 - index; // reverse order
+                animal->treatments->data[index]->was_rabies_vaccinated = !animal->treatments->data[index]->was_rabies_vaccinated;
             }
             break;
         case AnimalDetailsState_Editing:
@@ -110,7 +124,7 @@ bool handle_animal_details(char input, AnimalDetails* animal_details) {
                 case 1: value = &animal->species; break;
                 default:
                 {
-                    size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT;
+                    size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 1;
                     index = animal->treatments->count - 1 - index; // reverse order
                     value = &animal
                         ->treatments
@@ -130,26 +144,29 @@ bool handle_animal_details(char input, AnimalDetails* animal_details) {
 }
 
 // returns true when finished
-bool handle_owner_details(char input, OwnerDetails* owner_details) {
+bool handle_owner_details(char input, OwnerDetails* owner_details, Animals* animals, Treatments* treatments) {
     Owner* owner = owner_details->owner;
     switch (owner_details->state) {
         case OwnerDetailsState_Selecting:
-            if (handle_list(input, &owner_details->selected_index, OWNER_PROPERTY_COUNT + owner->animals->count))
+            if (handle_list(input, &owner_details->selected_index, OWNER_PROPERTY_COUNT + 1 + owner->animals->count))
                 return false;
             if (input == KEY_ENTER) {
                 if (owner_details->selected_index < OWNER_PROPERTY_COUNT) {
                     owner_details->state = OwnerDetailsState_Editing;
                     owner_details->old_value = NULL;
+                    return false;
                 }
-                else {
-                    owner_details->state = OwnerDetailsState_Details;
-                    owner_details->animal_details.state = AnimalDetailsState_Selecting;
-                    owner_details->animal_details.selected_index = 0;
-                    size_t index = owner_details->selected_index - OWNER_PROPERTY_COUNT;
-                    owner_details->animal_details.animal = owner->animals->data[index];
+
+                if (owner_details->selected_index == OWNER_PROPERTY_COUNT) {
+                    create_animal(animals, owner, new_empty_string(), new_empty_string());
+                    owner_details->selected_index = OWNER_PROPERTY_COUNT + 1 + owner->animals->count - 1;
                 }
+
+                owner_details->state = OwnerDetailsState_Details;
+                owner_details->animal_details.state = AnimalDetailsState_Selecting;
+                owner_details->animal_details.selected_index = 0;
+
                 return false;
-            
             }
             break;
         case OwnerDetailsState_Editing:
@@ -169,7 +186,7 @@ bool handle_owner_details(char input, OwnerDetails* owner_details) {
             return false;
         }
         case OwnerDetailsState_Details:
-            if (handle_animal_details(input, &owner_details->animal_details))
+            if (handle_animal_details(input, &owner_details->animal_details, treatments))
                 owner_details->state = OwnerDetailsState_Selecting;
             return false;
             
@@ -200,7 +217,7 @@ void handle_input(char input, App* app) {
 
                     break;
                 case VaxTabState_Details:
-                    if (handle_owner_details(input, &vax_tab->owner_details))
+                    if (handle_owner_details(input, &vax_tab->owner_details, app->animals, app->treatments))
                         vax_tab->state = VaxTabState_Selecting;
                     return;
             }
@@ -239,7 +256,7 @@ void handle_input(char input, App* app) {
                         return;
                     break;
                 case OwnersTabState_Details:
-                    if (handle_owner_details(input, &owners_tab->owner_details))
+                    if (handle_owner_details(input, &owners_tab->owner_details, app->animals, app->treatments))
                         owners_tab->state = OwnersTabState_Selecting;
                     return;
                 case OwnersTabState_Searching:
@@ -271,7 +288,7 @@ void handle_input(char input, App* app) {
                         return;
                     break;
                 case AnimalsTabState_Details:
-                    if (handle_animal_details(input, &animals_tab->animal_details))
+                    if (handle_animal_details(input, &animals_tab->animal_details, app->treatments))
                         animals_tab->state = AnimalsTabState_Selecting;
                     return;
                 case AnimalsTabState_Searching:

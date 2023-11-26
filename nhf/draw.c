@@ -117,8 +117,9 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
     draw_property(x, y += 1, "Tulajdonos", animal->owner->name, false, editing, surface);
     draw_property(x, y += 1, "Cím", animal->owner->address, false, editing, surface);
 
-    selected_index -= ANIMAL_PROPERTY_COUNT;
-    y++;
+    draw_add_button(x + 3, y += 2, selected_index == ANIMAL_PROPERTY_COUNT, surface);
+
+    selected_index -= ANIMAL_PROPERTY_COUNT + 1;
     time_t current_time = time(NULL);
     for (int i = 0; i < animal->treatments->count; i++) {
         y++;
@@ -158,15 +159,18 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
     draw_property(x, y += 1, "Cím", owner->address, selected_index == 1, editing, surface);
     draw_property(x, y += 1, "Elérhetőség", owner->contact, selected_index == 2, editing, surface);
 
-    selected_index -= OWNER_PROPERTY_COUNT;
-    y++;
+    draw_add_button(x + 3, y += 2, selected_index == OWNER_PROPERTY_COUNT, surface);
+
+    selected_index -= OWNER_PROPERTY_COUNT + 1;
     for (int i = 0; i < owner->animals->count; i++) {
         y++;
         Animal *animal = owner->animals->data[i];
 
         bool selected = selected_index == i;
-        if (selected)
+        if (selected) {
             draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, ON_SURFACE);
+            owner_details->animal_details.animal = animal;
+        }
         else
             background_color(surface);
 
@@ -395,14 +399,14 @@ void draw(App* app) {
     switch (app->tabs.state) {
         case TabsState_Vax:
         {
-            VaxTab vax_tab = app->tabs.vax_tab;
+            VaxTab* vax_tab = &app->tabs.vax_tab;
 
             // selected owner is set here to avoid recalculation
-            app->tabs.vax_tab.owner_details.owner = draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab.selected_index);
+            app->tabs.vax_tab.owner_details.owner = draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab->selected_index);
 
-            if (vax_tab.state == VaxTabState_Details) {
+            if (vax_tab->state == VaxTabState_Details) {
                 draw_owner_details(
-                    &vax_tab.owner_details,
+                    &vax_tab->owner_details,
                     add_margin(tab_bounds, 4, 2)
                 );
             }

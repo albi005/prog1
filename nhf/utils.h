@@ -21,4 +21,7 @@ int days_since(time_t date, time_t now);
 // ensures index is less than count
 void fit(size_t* index, size_t count);
 
+// open file for reading while ensuring it exists, exit on error
+FILE* open_file(char* filename);
+
 #endif

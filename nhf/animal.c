@@ -56,12 +56,7 @@ void remove_animal(Animals *animals, Animal *animal) {
 }
 
 Animals* open_animals(Owners *owners) {
-    FILE *f = fopen("animals", "r");
-
-    if (f == NULL) {
-        printf("Error opening animals file!\n");
-        exit(1);
-    }
+    FILE *f = open_file("animals");
 
     Animals *animals = new_animals();
     animals->file = f;
@@ -146,6 +141,8 @@ void delete_animal(Animal *animal, Animals *animals, Treatments *treatments) {
 }
 
 void close_animals(Animals *animals) {
+    fclose(animals->file);
+
     FILE *f = fopen("animals", "w");
     for (int i = 0; i < animals->count; i++) {
         Animal *animal = animals->data[i];

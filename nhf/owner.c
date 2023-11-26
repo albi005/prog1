@@ -84,12 +84,7 @@ void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *tr
 }
 
 Owners *open_owners() {
-    FILE *f = fopen("owners", "r");
-
-    if (f == NULL) {
-        printf("Error opening owners file!\n");
-        exit(1);
-    }
+    FILE *f = open_file("owners");
 
     Owners *owners = malloc(sizeof(Owners));
     owners->file = f;
@@ -112,6 +107,8 @@ Owners *open_owners() {
 }
 
 void close_owners(Owners *owners) {
+    fclose(owners->file);
+
     FILE *f = fopen("owners", "w");
     for (int i = 0; i < owners->count; i++) {
         Owner *owner = owners->data[i];

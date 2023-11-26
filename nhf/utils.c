@@ -59,3 +59,13 @@ void fit(size_t* index, size_t count) {
     if (*index >= count)
         *index = count - 1;
 }
+
+FILE* open_file(char* filename) {
+    FILE* f = fopen(filename, "a+");
+    if (f == NULL) {
+        printf("Error opening file %s!\n", filename);
+        exit(1);
+    }
+    return f;
+}
+

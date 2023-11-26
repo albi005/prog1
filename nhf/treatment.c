@@ -81,12 +81,7 @@ void delete_treatment(Treatment *treatment, Treatments *treatments) {
 }
 
 Treatments *open_treatments(Animals *animals) {
-    FILE *f = fopen("treatments", "r");
-
-    if (f == NULL) {
-        printf("Error opening treatments file!\n");
-        exit(1);
-    }
+    FILE *f = open_file("treatments");
 
     Treatments *treatments = new_treatments();
     treatments->file = f;
@@ -133,6 +128,8 @@ Treatments *open_treatments(Animals *animals) {
 }
 
 void close_treatments(Treatments *treatments) {
+    fclose(treatments->file);
+
     FILE *f = fopen("treatments", "w");
     for (int i = 0; i < treatments->count; i++) {
         Treatment *treatment = treatments->data[i];

@@ -146,8 +146,16 @@ void delete_animal(Animal *animal, Animals *animals, Treatments *treatments) {
 }
 
 void close_animals(Animals *animals) {
+    FILE *f = fopen("animals", "w");
+    for (int i = 0; i < animals->count; i++) {
+        Animal *animal = animals->data[i];
+        fprintf(f, "%zd\n%zd\n%s\n%s\n", animal->id, animal->owner->id, animal->name, animal->species);
+    }
+    fclose(f);
+
     for (int i = 0; i < animals->count; i++)
         free_animal(animals->data[i]);
     free(animals->data);
     free(animals);
 }
+

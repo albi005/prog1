@@ -112,6 +112,13 @@ Owners *open_owners() {
 }
 
 void close_owners(Owners *owners) {
+    FILE *f = fopen("owners", "w");
+    for (int i = 0; i < owners->count; i++) {
+        Owner *owner = owners->data[i];
+        fprintf(f, "%zd\n%s\n%s\n%s\n", owner->id, owner->name, owner->address, owner->contact);
+    }
+    fclose(f);
+
     for (int i = 0; i < owners->count; i++) {
         free(owners->data[i]->animals->data);
         free(owners->data[i]->animals);

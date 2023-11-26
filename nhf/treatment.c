@@ -131,7 +131,15 @@ Treatments *open_treatments(Animals *animals) {
 
     return treatments;
 }
+
 void close_treatments(Treatments *treatments) {
+    FILE *f = fopen("treatments", "w");
+    for (int i = 0; i < treatments->count; i++) {
+        Treatment *treatment = treatments->data[i];
+        fprintf(f, "%zd\n%zd\n%ld\n%d\n%s\n", treatment->id, treatment->animal->id, treatment->date, treatment->was_rabies_vaccinated, treatment->description);
+    }
+    fclose(f);
+
     for (int i = 0; i < treatments->count; i++)
         free_treatment(treatments->data[i]);
     free(treatments->data);

@@ -131,7 +131,6 @@ bool handle_animal_details(char input, AnimalDetails* animal_details, Animals* a
                 size_t index = animal_details->selected_index - ANIMAL_PROPERTY_COUNT - 1;
                 index = animal->treatments->count - 1 - index; // reverse order
                 delete_treatment(animal->treatments->data[index], treatments);
-                fit(&animal_details->selected_index, ANIMAL_PROPERTY_COUNT + 1 + animal->treatments->count);
                 return false;
             }
 
@@ -179,6 +178,7 @@ bool handle_owner_details(char input, OwnerDetails* owner_details, Owners* owner
                     return false;
                 }
 
+                // add new animal
                 if (owner_details->selected_index == OWNER_PROPERTY_COUNT) {
                     create_animal(animals, owner, new_empty_string(), new_empty_string());
                     owner_details->selected_index = OWNER_PROPERTY_COUNT + 1 + owner->animals->count - 1;
@@ -215,10 +215,8 @@ bool handle_owner_details(char input, OwnerDetails* owner_details, Owners* owner
             return false;
         }
         case OwnerDetailsState_Details:
-            if (handle_animal_details(input, &owner_details->animal_details, animals, treatments)) {
+            if (handle_animal_details(input, &owner_details->animal_details, animals, treatments))
                 owner_details->state = OwnerDetailsState_Selecting;
-                fit(&owner_details->selected_index, OWNER_PROPERTY_COUNT + 1 + owner->animals->count);
-            }
             return false;
     }
 
@@ -235,7 +233,7 @@ void handle_input(char input, App* app) {
             switch (vax_tab->state)
             {
                 case VaxTabState_Selecting:
-                    if (input == KEY_ENTER) {
+                    if (input == KEY_ENTER && app->owners->count > 0) {
                         vax_tab->state = VaxTabState_Details;
                         vax_tab->owner_details.state = OwnerDetailsState_Selecting;
                         vax_tab->owner_details.selected_index = 0;
@@ -247,10 +245,8 @@ void handle_input(char input, App* app) {
 
                     break;
                 case VaxTabState_Details:
-                    if (handle_owner_details(input, &vax_tab->owner_details, app->owners, app->animals, app->treatments)) {
+                    if (handle_owner_details(input, &vax_tab->owner_details, app->owners, app->animals, app->treatments))
                         vax_tab->state = VaxTabState_Selecting;
-                        fit(&vax_tab->selected_index, app->owners->count);
-                    }
                     return;
             }
             break;
@@ -290,7 +286,8 @@ void handle_input(char input, App* app) {
                 case OwnersTabState_Details:
                     if (handle_owner_details(input, &owners_tab->owner_details, app->owners, app->animals, app->treatments)) {
                         owners_tab->state = OwnersTabState_Selecting;
-                        fit(&owners_tab->selected_index, owners_tab->visible_count + 2);
+                        if (input == 'D')
+                            owners_tab->visible_count--;
                     }
                     return;
                 case OwnersTabState_Searching:
@@ -324,7 +321,8 @@ void handle_input(char input, App* app) {
                 case AnimalsTabState_Details:
                     if (handle_animal_details(input, &animals_tab->animal_details, app->animals, app->treatments)) {
                         animals_tab->state = AnimalsTabState_Selecting;
-                        fit(&animals_tab->selected_index, animals_tab->visible_count + 1);
+                        if (input == 'D')
+                            animals_tab->visible_count--;
                     }
                     return;
                 case AnimalsTabState_Searching:

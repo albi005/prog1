@@ -109,7 +109,8 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
     int y = bounds.y + 1;
 
     Animal* animal = animal_details->animal;
-    int selected_index = animal_details->selected_index;
+    size_t selected_index = animal_details->selected_index;
+    fit(&selected_index, ANIMAL_PROPERTY_COUNT + 1 + animal->treatments->count);
     bool editing = animal_details->state == AnimalDetailsState_Editing;
 
     draw_property(x, y += 1, "Név", animal->name, selected_index == 0, editing, surface);
@@ -152,7 +153,8 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
     int y = bounds.y + 1;
 
     Owner* owner = owner_details->owner;
-    int selected_index = owner_details->selected_index;
+    size_t selected_index = owner_details->selected_index;
+    fit(&selected_index, OWNER_PROPERTY_COUNT + 1 + owner->animals->count);
     bool editing = owner_details->state == OwnerDetailsState_Editing;
 
     draw_property(x, y += 1, "Név", owner->name, selected_index == 0, editing, surface);
@@ -233,6 +235,8 @@ void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments,
         }
     }
 
+    fit(&vax_tab->selected_index, owners->count);
+
     const Color surface = SURFACE_CONTAINER;
     size_t max_name_length = get_max_name_length(owners);
     bool is_selecting = vax_tab->state == VaxTabState_Selecting;
@@ -298,6 +302,10 @@ void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments,
 void draw_owners(Owners *os, OwnersTab* owners_tab, Rect bounds) {
     const Color surface = SURFACE_CONTAINER;
 
+    bool is_selecting = owners_tab->state == OwnersTabState_Selecting;
+    if (is_selecting)
+        fit(&owners_tab->selected_index, 2 + owners_tab->visible_count);
+
     size_t selected_index = owners_tab->selected_index;
     draw_property(2, 2, "Keresés", owners_tab->search_term, selected_index == 0, owners_tab->state == OwnersTabState_Searching, surface);
     draw_add_button(2, 4, selected_index == 1, surface);
@@ -347,6 +355,9 @@ void draw_owners(Owners *os, OwnersTab* owners_tab, Rect bounds) {
 
 void draw_animals(Animals *as, Owners *os, AnimalsTab* animals_tab, Rect bounds) {
     const Color surface = SURFACE_CONTAINER;
+
+    if (animals_tab->state == AnimalsTabState_Selecting)
+        fit(&animals_tab->selected_index, 1 + animals_tab->visible_count);
 
     size_t selected_index = animals_tab->selected_index;
     draw_property(2, 2, "Keresés", animals_tab->search_term, selected_index == 0, animals_tab->state == AnimalsTabState_Searching, surface);

@@ -6,6 +6,7 @@
 #include "owner.h"
 #include "treatment.h"
 #include "utils.h"
+#include <inttypes.h>
 
 Animals* new_animals() {
     Animals *animals = malloc(sizeof(Animals));
@@ -67,11 +68,11 @@ Animals* open_animals(Owners *owners) {
     while (1) {
         size_t id;
 
-        if (fscanf(f, "%zd", &id) < 1)
+        if (fscanf(f, "%" SCNu64, &id) < 1)
             break;
         getc(f); // newline
         size_t owner_id;
-        fscanf(f, "%zd", &owner_id);
+        fscanf(f, "%" SCNu64, &owner_id);
         getc(f); // newline
         char* name = read_line(f);
         char* species = read_line(f);
@@ -92,7 +93,7 @@ Animals* open_animals(Owners *owners) {
             }
         }
         if (owner == NULL) {
-            printf("Error: owner with id %zd not found!\n", owner_id);
+            printf("Error: owner with id %" SCNu64 " not found!\n", owner_id);
             exit(1);
         }
 
@@ -148,7 +149,7 @@ void close_animals(Animals *animals) {
     FILE *f = fopen("animals", "w");
     for (int i = 0; i < animals->count; i++) {
         Animal *animal = animals->data[i];
-        fprintf(f, "%zd\n%zd\n%s\n%s\n", animal->id, animal->owner->id, animal->name, animal->species);
+        fprintf(f, "%" SCNu64 "\n%" SCNu64 "\n%s\n%s\n", animal->id, animal->owner->id, animal->name, animal->species);
     }
     fclose(f);
 

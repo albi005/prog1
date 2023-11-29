@@ -15,7 +15,7 @@ Rect add_margin(Rect rect, int horizontal, int vertical) {
 
 char* new_empty_string() {
     char* s = malloc(sizeof(char));
-    s[0] = (long)NULL;
+    s[0] = 0;
     return s;
 }
 
@@ -38,7 +38,7 @@ char *read_line(FILE *f) {
         }
 
         s[len - 1] = c;
-        s[len] = (long)NULL;
+        s[len] = 0;
     }
 }
 

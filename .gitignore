@@ -7,3 +7,7 @@
 bin
 compile_commands.json
 result
+.idea
+**.exe
+cmake-build-debug
+**.o

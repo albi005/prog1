@@ -277,7 +277,7 @@ void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments,
         else if (oldest == max_time)
             printf("-");
         else
-            printf("%zu napja", days);
+            printf("%" SCNu64 " napja", days);
 
         int x = 16;
         int y = i + 2;

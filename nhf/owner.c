@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "animal.h"
 #include "debugmalloc.h"
 #include "owner.h"
 #include "utils.h"
+#include <inttypes.h>
 
 // TODO: reorder
 
@@ -93,8 +95,8 @@ Owners *open_owners() {
     owners->data = NULL;
 
     while (1) {
-        size_t id;
-        if (fscanf(f, "%zd", &id) < 1)
+        uint64_t id;
+        if (fscanf(f, "%" SCNu64, &id) < 1)
             break;
         getc(f); // newline
         char* name = read_line(f);
@@ -113,7 +115,7 @@ void close_owners(Owners *owners) {
     FILE *f = fopen("owners", "w");
     for (int i = 0; i < owners->count; i++) {
         Owner *owner = owners->data[i];
-        fprintf(f, "%zd\n%s\n%s\n%s\n", owner->id, owner->name, owner->address, owner->contact);
+        fprintf(f, "%" SCNu64 "\n%s\n%s\n%s\n", owner->id, owner->name, owner->address, owner->contact);
     }
     fclose(f);
 

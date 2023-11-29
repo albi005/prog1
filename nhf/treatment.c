@@ -6,6 +6,7 @@
 #include "animal.h"
 #include "utils.h"
 #include "treatment.h"
+#include <inttypes.h>
 
 Treatments* new_treatments() {
     Treatments *treatments = malloc(sizeof(Treatments));
@@ -92,10 +93,10 @@ Treatments *open_treatments(Animals *animals) {
         time_t date;
         int was_rabies_vaccinated;
 
-        if (fscanf(f, "%zd\n", &id) < 1)
+        if (fscanf(f, "%" SCNu64 "\n", &id) < 1)
             break;
-        fscanf(f, "%zd\n", &animal_id);
-        fscanf(f, "%ld\n", &date);
+        fscanf(f, "%" SCNu64 "\n", &animal_id);
+        fscanf(f, "%" SCNu64 "\n", &date);
         fscanf(f, "%d", &was_rabies_vaccinated);
         getc(f); // newline
         char* description = read_line(f);
@@ -117,7 +118,7 @@ Treatments *open_treatments(Animals *animals) {
         }
         
         if (animal == NULL) {
-            printf("Error: animal with id %zd not found!\n", animal_id);
+            printf("Error: animal with id %" SCNu64 " not found!\n", animal_id);
             exit(1);
         }
 
@@ -134,7 +135,7 @@ void close_treatments(Treatments *treatments) {
     FILE *f = fopen("treatments", "w");
     for (int i = 0; i < treatments->count; i++) {
         Treatment *treatment = treatments->data[i];
-        fprintf(f, "%zd\n%zd\n%ld\n%d\n%s\n", treatment->id, treatment->animal->id, treatment->date, treatment->was_rabies_vaccinated, treatment->description);
+        fprintf(f, "%" SCNu64 "\n%" SCNu64 "\n%" SCNu64 "\n%d\n%s\n", treatment->id, treatment->animal->id, treatment->date, treatment->was_rabies_vaccinated, treatment->description);
     }
     fclose(f);
 

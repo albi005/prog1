@@ -27,16 +27,16 @@ typedef struct Owners {
     FILE *file;
 } Owners;
 
-// Open the `owners` file and read all Owners from it.
-Owners *open_owners();
-
-// Save owners to the `owners` file and free up owners and everything in it.
-void close_owners(Owners *owners);
-
 // Create an Owner and add it to the main Owners array. Returns the created Owner.
 Owner *create_owner(Owners *owners, char *name, char *address, char *contact);
 
 // Delete an owner and its animals
 void delete_owner(Owner *owner, Owners *owners, Animals *animals, Treatments *treatments);
+
+// Open the `owners` file and read all Owners from it.
+Owners *open_owners();
+
+// Save owners to the `owners` file and free up owners and everything in it.
+void close_owners(Owners *owners);
 
 #endif

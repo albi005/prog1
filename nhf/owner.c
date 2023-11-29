@@ -1,13 +1,11 @@
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include "animal.h"
 #include "debugmalloc.h"
 #include "owner.h"
 #include "utils.h"
-#include <inttypes.h>
-
-// TODO: reorder
 
 void add_owner(Owners *owners, Owner* owner) {
     owners->count++;
@@ -113,13 +111,13 @@ void close_owners(Owners *owners) {
     fclose(owners->file);
 
     FILE *f = fopen("owners", "w");
-    for (int i = 0; i < owners->count; i++) {
+    for (size_t i = 0; i < owners->count; i++) {
         Owner *owner = owners->data[i];
         fprintf(f, "%" SCNu64 "\n%s\n%s\n%s\n", owner->id, owner->name, owner->address, owner->contact);
     }
     fclose(f);
 
-    for (int i = 0; i < owners->count; i++) {
+    for (size_t i = 0; i < owners->count; i++) {
         free(owners->data[i]->animals->data);
         free(owners->data[i]->animals);
         free(owners->data[i]->name);

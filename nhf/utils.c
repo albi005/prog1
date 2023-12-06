@@ -13,6 +13,14 @@ Rect add_margin(Rect rect, int horizontal, int vertical) {
     return rect;
 }
 
+Rect add_margin_trbl(Rect rect, int top, int right, int bottom, int left) {
+    rect.x += left;
+    rect.y += top;
+    rect.w -= left + right;
+    rect.h -= top + bottom;
+    return rect;
+}
+
 char* new_empty_string() {
     char* s = malloc(sizeof(char));
     s[0] = 0;

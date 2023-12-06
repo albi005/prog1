@@ -128,7 +128,7 @@ void draw_animal_details(AnimalDetails* animal_details, Rect bounds) {
 
         bool selected = selected_index == i;
         if (selected)
-            draw_rect((Rect){x - 1, y, bounds.w - 8, 1}, ON_SURFACE);
+            draw_rect((Rect){x - 1, y, bounds.w - 6, 1}, ON_SURFACE);
         else
             background_color(surface);
 
@@ -184,11 +184,13 @@ void draw_owner_details(OwnerDetails* owner_details, Rect bounds) {
         printf("%s", animal->species);
     }
 
-    if (owner_details->state == OwnerDetailsState_Details)
-        draw_animal_details(&owner_details->animal_details, add_margin(bounds, 4, 2));
+    if (owner_details->state == OwnerDetailsState_Details) {
+        Rect animal_details_bounds = add_margin_trbl(bounds, 3, 2, 2, 16);
+        draw_animal_details(&owner_details->animal_details, animal_details_bounds);
+    }
 }
 
-void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments, VaxTab* vax_tab) {
+void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments, VaxTab* vax_tab, Rect bounds) {
     if (owners->count == 0) return;
 
     // animal id -> last vaccination
@@ -260,7 +262,7 @@ void draw_vaccinations(Owners *owners, Animals *animals, Treatments *treatments,
         }
 
         if (selected) {
-            draw_rect((Rect){0, i + 2, 120, 1}, ON_SURFACE);
+            draw_rect((Rect){0, i + 2, bounds.w - 4, 1}, ON_SURFACE);
         }
         else
             background_color(surface);
@@ -331,7 +333,7 @@ void draw_owners(Owners *os, OwnersTab* owners_tab, Rect bounds) {
 
         bool selected = selected_index == owners_tab->visible_count - 1;
         if (selected) {
-            draw_rect((Rect){0, y, 120, 1}, ON_SURFACE);
+            draw_rect((Rect){1, y, bounds.w - 2, 1}, ON_SURFACE);
             owners_tab->owner_details.owner = owner;
         }
         else
@@ -349,8 +351,10 @@ void draw_owners(Owners *os, OwnersTab* owners_tab, Rect bounds) {
         printf("%s", owner->contact);
     }
 
-    if (owners_tab->state == OwnersTabState_Details)
-        draw_owner_details(&owners_tab->owner_details, add_margin(bounds, 4, 2));
+    if (owners_tab->state == OwnersTabState_Details) {
+        Rect owner_details_bounds = add_margin_trbl(bounds, 7, 2, 2, 12);
+        draw_owner_details(&owners_tab->owner_details, owner_details_bounds);
+    }
 }
 
 void draw_animals(Animals *as, Owners *os, AnimalsTab* animals_tab, Rect bounds) {
@@ -421,7 +425,7 @@ void draw(App* app) {
         {
             VaxTab* vax_tab = &app->tabs.vax_tab;
 
-            draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab);
+            draw_vaccinations(app->owners, app->animals, app->treatments, vax_tab, tab_bounds);
 
             if (vax_tab->state == VaxTabState_Details) {
                 draw_owner_details(

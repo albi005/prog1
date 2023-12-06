@@ -1,15 +1,22 @@
-# Prog 1 NHF
+# Vetman
 
-Ez egy parancssori alkalmazás, ami egy állatorvosi rendelő életét segíti. Eltárolja a tulajdonosok és állataik adatait. 
+![](preview.png)
+
+Parancssori alkalmazás, ami egy állatorvosi rendelő életét segíti.
+Kezeli a tulajdonosok, állataik és azok kezeléseik adatait.
+Képes kiszámítani az esedékes oltásokat, a tulajdonosokat és az állatokat pedig név szerint lehet keresni.
+Forráskód: https://github.com/albi005/prog1/tree/main/nhf#readme
 
 ## Futtatás
 
 ```bash
-cd nhf
+git clone https://github.com/albi005/prog1
+cd prog1/nhf
 gcc *.c
 ./a.out
 ```
 A megjelenítés Windows-on nem biztosan működik, erről részletesebben a `console.c` leírásánál.
+
 ## Használat
 
 Futtatás után a főmenübe kerülünk, ahol a `TAB` billentyűvel lehet az aloldalak között váltani.

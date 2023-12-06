@@ -17,6 +17,8 @@ char *read_line(FILE *f);
 
 Rect add_margin(Rect rect, int horizontal, int vertical);
 
+Rect add_margin_trbl(Rect rect, int top, int right, int bottom, int left);
+
 // Returns a newly allocated non-null empty string
 char* new_empty_string();
 
